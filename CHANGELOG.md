@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.0.0...v1.0.1) (2026-04-28)
+
+
+### Bug Fixes
+
+* duplicate enhance export ([09743a5](https://github.com/SourceRegistry/sveltekit-enhance/commit/09743a575df2713810af607e27eed1c64b8b30eb))
+
 # 1.0.0 (2026-04-28)
 
 

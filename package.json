@@ -1,6 +1,6 @@
 {
   "name": "@sourceregistry/sveltekit-enhance",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Composable enhance and form utilities for SvelteKit actions, loads, methods, and hooks.",
   "author": "A.P.A. Slaa (a.p.a.slaa@projectsource.nl)",
   "scripts": {
