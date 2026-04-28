@@ -8,6 +8,11 @@ export default defineConfig({
             port: 5174
         }
     },
+    build: {
+        rollupOptions: {
+            external: ['node:*']
+        },
+    },
     test: {
         expect: {requireAssertions: true},
         projects: [

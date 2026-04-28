@@ -28,9 +28,9 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/client/index.d.ts",
-      "svelte": "./dist/client/index.js",
-      "default": "./dist/client/index.js"
+      "types": "./dist/index.d.ts",
+      "svelte": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
   "repository": {
@@ -39,6 +39,9 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "peerDependencies": {
+    "@sveltejs/kit": "^2.58.0"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
