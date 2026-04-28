@@ -725,7 +725,7 @@ export async function handle<T>(
     }
 }
 
-export async function enhance(input: EnhanceInput): Promise<{ form: FormContext }> {
+async function enhance(input: EnhanceInput): Promise<{ form: FormContext }> {
     const data =
         input.request.headers.has('Content-Type') &&
         input.request.headers.get('Content-Type')?.includes('form')
