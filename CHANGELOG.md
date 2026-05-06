@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.1.0...v1.1.1) (2026-05-06)
+
+
+### Bug Fixes
+
+* form helper ([33b0470](https://github.com/SourceRegistry/sveltekit-enhance/commit/33b047075ad2f18ce09345c9d0ce990ef2db9e79))
+
 # [1.1.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.0.1...v1.1.0) (2026-05-06)
 
 
