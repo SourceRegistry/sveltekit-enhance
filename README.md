@@ -9,7 +9,7 @@ Use `@sourceregistry/sveltekit-enhance` to build cleaner actions, loads, methods
 
 ## Why teams use this
 
-- Standardize server-side guard logic across routes.
+- Standardize server-side context logic across routes.
 - Reduce repetitive request parsing and validation code.
 - Keep middleware-like behavior explicit and composable.
 - Improve observability with correlation IDs on every response.
@@ -29,7 +29,7 @@ The package provides an `enhance` wrapper for:
 - `enhance.method(...)`
 - `enhance.handle(...)`
 
-Each wrapper accepts one or more guard functions and merges their outputs into a typed `guard` object.
+Each wrapper accepts one or more context functions and merges their outputs into a typed `context` object.
 
 ## Quick start
 
@@ -40,13 +40,13 @@ import {Auth, FeatureFlag, form} from '@sourceregistry/sveltekit-enhance';
 
 export const actions = {
   save: enhance.action(
-    async ({request, guard}) => {
+    async ({request, context}) => {
       const data = await request.formData();
       const email = form.string$(data, 'email');
 
       return {
         ok: true,
-        token: guard.token,
+        token: context.token,
         email
       };
     },
