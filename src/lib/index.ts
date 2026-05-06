@@ -16,7 +16,7 @@ import type {RouteId as AppRouteId, LayoutParams as AppLayoutParams} from '$app/
 
 export type MaybePromise<T> = T | Promise<T>;
 
-export type EnhanceErrorHandler = <T = any>(err: unknown) => MaybePromise<T> | undefined | never | void;
+export type EnhanceErrorHandler = <T = any>(err: unknown) => MaybePromise<T | Response | undefined | never | void>;
 export type EnhanceResponseHandler = (input: {
     event: RequestEvent;
     response: Response;
@@ -28,7 +28,7 @@ export type EnhanceCallType = 'handle' | 'load' | 'method' | 'action';
 export type EnhanceInput<
     CallType extends EnhanceCallType = EnhanceCallType,
     Params extends AppLayoutParams<'/'> = AppLayoutParams<'/'>,
-    RouteId extends AppRouteId | null = AppRouteId | null,
+    RouteId extends AppRouteId | string | null = AppRouteId | string | null,
     ParentData extends Record<string, any> = Record<string, any>
 > = {
     cookies: Cookies;
@@ -48,8 +48,11 @@ export type EnhanceInput<
     }
     : CallType extends 'load'
         ? {
+            // @ts-expect-error relax the route_id when integrating with libraries
             parent: ServerLoadEvent<Params, ParentData, RouteId>['parent'];
+            // @ts-expect-error relax the route_id when integrating with libraries
             depends: ServerLoadEvent<Params, ParentData, RouteId>['depends'];
+            // @ts-expect-error relax the route_id when integrating with libraries
             untrack: ServerLoadEvent<Params, ParentData, RouteId>['untrack'];
         }
         : object);
@@ -57,15 +60,16 @@ export type EnhanceInput<
 export type EnhanceFunction<
     CallType extends EnhanceCallType = EnhanceCallType,
     Params extends AppLayoutParams<'/'> = AppLayoutParams<'/'>,
-    RouteId extends AppRouteId | null = AppRouteId | null,
+    RouteId extends AppRouteId | string | null = AppRouteId | string | null,
     EnhanceReturn = any
 > = (event: EnhanceInput<CallType, Params, RouteId>) => MaybePromise<EnhanceReturn>;
 
 export type EnhanceAction<
     Params extends AppLayoutParams<'/'>,
     OutputData extends Record<string, any> | void,
-    RouteId extends AppRouteId | null,
+    RouteId extends AppRouteId | string | null,
     EnhanceReturn extends ActionResult | never | any = ActionResult
+    // @ts-expect-error relax the route_id when integrating with libraries
 > = (event: RequestEvent<Params, RouteId> & { context: EnhanceReturn }) => MaybePromise<OutputData>;
 
 export type EnhanceLoad<
@@ -118,7 +122,7 @@ export const action =
     <
         Params extends AppLayoutParams<'/'> = AppLayoutParams<'/'>,
         OutputData extends Record<string, any> | void = Record<string, any> | void,
-        RouteId extends AppRouteId | null = AppRouteId | null,
+        RouteId extends AppRouteId | string | null = AppRouteId | string | null,
         const Enhances extends readonly EnhanceFunction<'action', Params, RouteId, object>[] = readonly EnhanceFunction<
             'action',
             Params,
@@ -129,9 +133,12 @@ export const action =
     >(
         action: EnhanceAction<Params, OutputData, RouteId, EnhanceReturn>,
         ...enhances: [...Enhances]
+        // @ts-expect-error relax the route_id when integrating with libraries
     ): Action<Params, OutputData, RouteId> =>
+        // @ts-expect-error relax the route_id when integrating with libraries
         async (event: RequestEvent<Params, RouteId>): Promise<OutputData> => {
             let combined: EnhanceReturn = {} as EnhanceReturn;
+            // @ts-expect-error relax the route_id when integrating with libraries
             const input: EnhanceInput<'action', Params, RouteId> & RequestEvent<Params, RouteId> =
                 Object.assign(event, {
                     __errorHandlers__: [] as EnhanceErrorHandler[],
@@ -200,7 +207,7 @@ export const load = <
 
 export const method = <
     Params extends AppLayoutParams<'/'> = AppLayoutParams<'/'>,
-    RouteId extends AppRouteId | null = AppRouteId | null,
+    RouteId extends AppRouteId | string | null = AppRouteId | string | null,
     const Enhances extends readonly EnhanceFunction<'method', Params, RouteId, object>[] = readonly EnhanceFunction<
         'method',
         Params,
@@ -209,11 +216,14 @@ export const method = <
     >[],
     EnhanceReturn extends Awaited<ConcatReturnTypes<Enhances>> = Awaited<ConcatReturnTypes<Enhances>>
 >(
+    // @ts-expect-error this is to relax the typing around external integrations
     handle: EnhanceMethod<Params, RouteId, EnhanceReturn>,
     ...contexts: [...Enhances]
 ) => {
+    // @ts-expect-error this is to relax the typing around external integrations
     return async (event: RequestEvent<Params, RouteId>): Promise<Response> => {
         let combined: EnhanceReturn = {} as EnhanceReturn;
+        // @ts-expect-error this is to relax the typing around external integrations
         const contextInput: EnhanceInput<'method', Params, RouteId> & RequestEvent<Params, RouteId> =
             Object.assign(event, {
                 __errorHandlers__: [] as EnhanceErrorHandler[],
