@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.0.1...v1.1.0) (2026-05-06)
+
+
+### Features
+
+* relaxed route_id typings and added typing on error handlers for response ([1370ac3](https://github.com/SourceRegistry/sveltekit-enhance/commit/1370ac354ce03ce99ff15c1081876ac221192f64))
+
 ## [1.0.1](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.0.0...v1.0.1) (2026-04-28)
 
 
