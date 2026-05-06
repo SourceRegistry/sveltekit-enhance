@@ -276,7 +276,7 @@ export function number(formdata: FormData, name: string) {
 export function number$(formdata: FormData, name: string) {
     const _number = number(formdata, name);
     if (_number === undefined) {
-        fail(400, {targets: [name], message: `${name} is required`});
+        return fail(400, {targets: [name], message: `${name} is required`});
     }
     return _number;
 }
@@ -692,7 +692,7 @@ export function selector$<
         if ('$error' in cases) {
             cases?.['$error']?.('Unable to find value');
         }
-        fail(400, {targets: Object.keys(cases), message: `Unable to find value`});
+        return fail(400, {targets: Object.keys(cases), message: `Unable to find value`});
     }
     return result as NonNullable<ReturnType<C[keyof C]>>;
 }
