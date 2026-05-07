@@ -43,7 +43,7 @@ export type EnhanceInput<
 } & (CallType extends 'handle'
     ? {
         get responseHandlers(): EnhanceResponseHandler[];
-        resolve: (event?: RequestEvent) => never;
+        resolve: (event?: RequestEvent, opts?: ResolveOptions) => MaybePromise<Response>;
         readonly event: RequestEvent;
     }
     : CallType extends 'load'
@@ -257,6 +257,7 @@ export const handle = <
     ...contexts: [...Enhances]
 ): Handle => async (input): Promise<Response> => {
     let combined: EnhanceReturn = {} as EnhanceReturn;
+    let resolved = false;
     const contextInput: EnhanceInput<'handle'> & RequestEvent & {
         get responseHandlers(): EnhanceResponseHandler[];
     } = Object.assign(input.event, {
@@ -270,23 +271,86 @@ export const handle = <
         get responseHandlers() {
             return this.__responseHandler__;
         },
-        resolve: (event: RequestEvent = input.event) => {
-            throw input.resolve(event);
+        resolve: (event: RequestEvent = input.event, opts?: ResolveOptions) => {
+            resolved = true;
+            return apply_handle(contexts.length, event, opts);
         },
         get event() {
             return input.event;
         }
     } as any);
-    for (const context of contexts) {
-        try {
-            const result = await context(contextInput);
-            combined = Object.assign(combined, result);
-        } catch (e) {
-            return EnhanceErrorHandle(e, contextInput);
+
+    const merge_options = (
+        parent_options: ResolveOptions | undefined,
+        options: ResolveOptions | undefined
+    ): ResolveOptions => {
+        const transformPageChunk: ResolveOptions['transformPageChunk'] = async ({html, done}) => {
+            if (options?.transformPageChunk) {
+                html = (await options.transformPageChunk({html, done})) ?? '';
+            }
+
+            if (parent_options?.transformPageChunk) {
+                html = (await parent_options.transformPageChunk({html, done})) ?? '';
+            }
+
+            return html;
+        };
+
+        return {
+            transformPageChunk,
+            filterSerializedResponseHeaders:
+                parent_options?.filterSerializedResponseHeaders ??
+                options?.filterSerializedResponseHeaders,
+            preload: parent_options?.preload ?? options?.preload
+        };
+    };
+
+    const apply_handle = async (
+        i: number,
+        event: RequestEvent,
+        parent_options?: ResolveOptions
+    ): Promise<Response> => {
+        if (i < contexts.length) {
+            const context = contexts[i];
+            const previous_resolve = contextInput.resolve;
+            contextInput.resolve = (next_event: RequestEvent = event, options?: ResolveOptions) => {
+                resolved = true;
+                return apply_handle(i + 1, next_event, merge_options(parent_options, options));
+            };
+
+            try {
+                resolved = false;
+                const result = await context(contextInput);
+                if (result instanceof Response) return result;
+                if (resolved) {
+                    throw new Error('enhance.handle context called resolve but did not return its response');
+                }
+                combined = Object.assign(combined, result);
+                return apply_handle(i + 1, event, parent_options);
+            } catch (e) {
+                return EnhanceErrorHandle(e, contextInput) as Promise<Response>;
+            } finally {
+                contextInput.resolve = previous_resolve;
+            }
         }
-    }
+
+        try {
+            return await handle(
+                {
+                    ...input,
+                    context: combined,
+                    event,
+                    resolve: (next_event: RequestEvent, options?: ResolveOptions) =>
+                        input.resolve(next_event, merge_options(parent_options, options))
+                }
+            );
+        } catch (e) {
+            return EnhanceErrorHandle(e, contextInput) as Promise<Response>;
+        }
+    };
+
     try {
-        const response = await handle(Object.assign(input, {context: combined}));
+        const response = await apply_handle(0, input.event);
         if (contextInput.responseHandlers.length > 0) {
             for (const responseHandler of contextInput.responseHandlers) {
                 await responseHandler({event: contextInput, response});
