@@ -1,3 +1,11 @@
+## [1.1.2](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.1.1...v1.1.2) (2026-05-07)
+
+
+### Bug Fixes
+
+* enhance handle function work more like sveltekit sequence ([298adeb](https://github.com/SourceRegistry/sveltekit-enhance/commit/298adeb9bc631f5016d1c63d3634545064e41440))
+* enhance handle function work more like sveltekit sequence ([40a4194](https://github.com/SourceRegistry/sveltekit-enhance/commit/40a4194a24165de9fb6177c197a45081dcc49c4f))
+
 ## [1.1.1](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.1.0...v1.1.1) (2026-05-06)
 
 
