@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.3.0...v1.3.1) (2026-05-17)
+
+
+### Bug Fixes
+
+* added _date in Form.enhance so a date can also be null ([085c91e](https://github.com/SourceRegistry/sveltekit-enhance/commit/085c91ec7b2229ba6dbbdd554fec6e7ba3547887))
+
 # [1.3.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.2.0...v1.3.0) (2026-05-17)
 
 
