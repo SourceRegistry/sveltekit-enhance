@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.1.2...v1.2.0) (2026-05-17)
+
+
+### Features
+
+* added request-monitor helper and getClientAddress optional when adapters put it in the RequestEvent Object. ([acb81d4](https://github.com/SourceRegistry/sveltekit-enhance/commit/acb81d436a9391fd44533155d886cca82328b5e0))
+
 ## [1.1.2](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.1.1...v1.1.2) (2026-05-07)
 
 
