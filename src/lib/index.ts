@@ -39,6 +39,7 @@ export type EnhanceInput<
     request: Request;
     callType: CallType;
     fetch: typeof fetch;
+    getClientAddress?: () => string;
     get errorHandlers(): EnhanceErrorHandler[];
 } & (CallType extends 'handle'
     ? {
