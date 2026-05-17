@@ -1,3 +1,11 @@
+# [1.3.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.2.0...v1.3.0) (2026-05-17)
+
+
+### Features
+
+* added CSRF helper and exposed logger typing ([d8f7add](https://github.com/SourceRegistry/sveltekit-enhance/commit/d8f7addce582ff5b4c3c8a43a6fb635a3129cad4))
+* added CSRF helper and exposed logger typing ([8d30b65](https://github.com/SourceRegistry/sveltekit-enhance/commit/8d30b65cf8ff43aca64ee8ce31812807c51158d9))
+
 # [1.2.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.1.2...v1.2.0) (2026-05-17)
 
 
