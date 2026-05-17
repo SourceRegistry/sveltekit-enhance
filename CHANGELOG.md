@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.3.1...v1.3.2) (2026-05-17)
+
+
+### Bug Fixes
+
+* SSE behavior to the enhance.handle ([660595d](https://github.com/SourceRegistry/sveltekit-enhance/commit/660595d86c22e7083831c63ec96b1cd50932f47c))
+
 ## [1.3.1](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.3.0...v1.3.1) (2026-05-17)
 
 
