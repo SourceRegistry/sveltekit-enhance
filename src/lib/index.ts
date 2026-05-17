@@ -335,6 +335,12 @@ export const handle = <
             }
         }
 
+        // SSE responses cannot be awaited — bypass the main handler to avoid blocking
+        // indefinitely on a streaming response that never ends.
+        if (event.request.headers.get('accept')?.includes('text/event-stream')) {
+            return input.resolve(event, parent_options);
+        }
+
         try {
             return await handle(
                 {
@@ -352,7 +358,8 @@ export const handle = <
 
     try {
         const response = await apply_handle(0, input.event);
-        if (contextInput.responseHandlers.length > 0) {
+        const isSSE = response.headers.get('content-type')?.includes('text/event-stream');
+        if (!isSSE && contextInput.responseHandlers.length > 0) {
             for (const responseHandler of contextInput.responseHandlers) {
                 await responseHandler({event: contextInput, response});
             }

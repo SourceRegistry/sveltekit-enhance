@@ -80,6 +80,30 @@ export const handle = enhance.handle(
 );
 ```
 
+#### SSE / streaming responses
+
+`enhance.handle` automatically detects Server-Sent Events and other streaming requests (via `Accept: text/event-stream`) and bypasses the main handler entirely — going straight to SvelteKit's `resolve`. This prevents the handler from blocking indefinitely on `await resolve(event)`, which never settles for a streaming response.
+
+Consequences:
+- The **main handler** does not run for SSE requests — it cannot inspect or modify the response headers.
+- **`responseHandlers`** (added by enhancers via `contextInput.responseHandlers.push(...)`) are also skipped for responses with `Content-Type: text/event-stream`.
+- **Enhancers** (the variadic context arguments) still run normally — they can set locals, authenticate the request, or short-circuit with an error response.
+
+```ts
+// This handler is skipped for SSE requests — no change needed on your end.
+export const handle = enhance.handle(
+    async ({ event, resolve }) => {
+        const response = await resolve(event); // not called for SSE
+        response.headers.set('x-custom', 'value');
+        return response;
+    },
+    Auth.Bearer,       // still runs — can reject unauthorized SSE requests
+    SessionGuard.hook, // still runs
+);
+```
+
+If you need to set response headers on SSE routes, do it in the route handler itself (e.g. `+server.ts`) rather than in the `enhance.handle` main handler.
+
 ### `enhance.load`
 
 Wraps server `load` functions.
