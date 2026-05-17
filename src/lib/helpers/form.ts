@@ -110,6 +110,13 @@ const createContext = (data: FormData) => {
                 data,
                 name
             ) => data.get(name) as string
+        ) => date(data, name, parser) ?? undefined,
+        _date: (
+            name: string,
+            parser: (formdata: FormData, name: string) => number | string | Date | undefined = (
+                data,
+                name
+            ) => data.get(name) as string
         ) => date(data, name, parser),
         date$: (
             name: string,
@@ -318,7 +325,7 @@ export function date(
     }
     const val = parser(formdata, name);
     if (!val) {
-        return undefined;
+        return null;
     }
     return new Date(val);
 }
