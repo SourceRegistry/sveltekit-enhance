@@ -1,4 +1,5 @@
 import type {EnhanceFunction, EnhanceInput} from "../index.js";
+import type {Logger} from "./logger.js";
 
 const durationMs = (startedAt: bigint) => Number(process.hrtime.bigint() - startedAt) / 1_000_000;
 
@@ -19,15 +20,9 @@ export type RecordTraceMetricEntry = {
     durationMs: number,
 }
 
-export type TraceLogger = {
-    debug: (...args: any[]) => any
-    info: (...args: any[]) => any
-    warn: (...args: any[]) => any
-    error: (...args: any[]) => any
-}
 
 export type TraceOptions = {
-    logger?: TraceLogger
+    logger?: Logger
     record?: (entry: RecordTraceMetricEntry) => any
 }
 

@@ -138,6 +138,39 @@ All helpers are available from `@sourceregistry/sveltekit-enhance` or `@sourcere
 
 ---
 
+### `CSRF`
+
+Blocks cross-site form submissions on mutating methods (`POST`, `PUT`, `PATCH`, `DELETE`) with form content types. Checks the `Origin` header against the request origin. Absent `Origin` (server-side fetch, curl) is allowed through. Returns `403` — JSON body when `Accept: application/json`, SvelteKit `error()` otherwise.
+
+```ts
+import { CSRF, CSRFChecker } from '@sourceregistry/sveltekit-enhance';
+
+export const handle = enhance.handle(
+    myHandler,
+    CSRF.inspect(
+        CSRFChecker.list('/api/webhooks/stripe'),  // bypass paths
+        myLogger,                                   // optional, defaults to console
+    ),
+);
+```
+
+Built-in bypass checkers:
+
+| Checker | Description |
+|---------|-------------|
+| `CSRFChecker.list(...paths)` | Exact pathname match |
+| `CSRFChecker.regex(...patterns)` | RegExp match against pathname |
+
+Custom checker — any `(input: EnhanceInput) => MaybePromise<boolean>`:
+```ts
+// true = bypass CSRF check
+CSRF.inspect((input) => input.url.pathname.startsWith('/api/public'))
+```
+
+Returns `{ csrf_valid: true }` on pass. Locals set: none.
+
+---
+
 ### `Auth`
 
 Extracts and validates `Authorization: Bearer <token>` headers.
@@ -353,6 +386,7 @@ TraceOptions               // { logger?: TraceLogger; record?: (entry) => any }
 RecordTraceMetricEntry     // { method: string; path: string; status: number; durationMs: number }
 RequestTraceLocals         // { trace?: { id: string; started_at: bigint } }
 RequestCorrelationLocals   // { correlation_id?: string; request_started_at?: number }
+CSRFChecker                // { regex(...patterns): checker; list(...paths): checker }
 ```
 
 ---
