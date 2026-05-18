@@ -1,3 +1,10 @@
+## [1.3.3](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.3.2...v1.3.3) (2026-05-18)
+
+
+### Bug Fixes
+
+* request-monitor trace_id to play nice with RequestCorrelation helper ([9157909](https://github.com/SourceRegistry/sveltekit-enhance/commit/9157909319b74e87c7523c585013eaa2492c2daf))
+
 ## [1.3.2](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.3.1...v1.3.2) (2026-05-17)
 
 
