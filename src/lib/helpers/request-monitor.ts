@@ -1,5 +1,6 @@
 import type {EnhanceFunction, EnhanceInput} from "../index.js";
 import type {Logger} from "./logger.js";
+import {randomUUID} from "node:crypto";
 
 const durationMs = (startedAt: bigint) => Number(process.hrtime.bigint() - startedAt) / 1_000_000;
 
@@ -35,7 +36,12 @@ export const RequestMonitor = {
 
         return async (event: EnhanceInput<'handle'>) => {
             const locals = event.locals as App.Locals & RequestTraceLocals;
-            const requestId = (locals as any).requestId ?? "unknown";
+            const requestId =
+                (locals as any).correlation_id ??
+                (locals as any).request_id ??
+                event.request.headers.get('x-correlation-id') ??
+                event.request.headers.get('x-request-id') ??
+                randomUUID();
             const route = resolveRoute(event);
 
             locals.trace = {
