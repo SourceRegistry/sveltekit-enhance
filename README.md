@@ -309,6 +309,63 @@ Locals set: `trace: { id: string; started_at: bigint }`.
 
 ---
 
+### `CacheControl`
+
+Sets `Cache-Control` response headers. Provides named directive helpers so policies are readable at a glance, and two enhancers — one for broad handle-level rules, one for per-route load-level overrides.
+
+```ts
+import { CacheControl, directive } from '@sourceregistry/sveltekit-enhance';
+
+// hooks.server.ts — apply rules globally
+export const handle = enhance.handle(
+    myHandler,
+    CacheControl.global(
+        { match: /^\/api\//, directive: directive.noStore },
+        { match: /^\/blog\//, directive: directive.public(300, 60) },
+    ),
+);
+
+// +page.server.ts — override for a specific route
+export const load = enhance.load(
+    async (event) => event.context,
+    CacheControl.local(directive.public(3600)),
+);
+```
+
+`directive` is also exported as a standalone named export — shorthand for `CacheControl.directive` when you only need to reference directives without the enhancers.
+
+#### `CacheControl.global(...rules)`
+
+Handle-level enhancer. Iterates the rule list and sets `Cache-Control` via `setHeaders()` for the first matching pathname. When no rule matches, the header is left unset.
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `...rules` | `CacheRule[]` | Ordered list of `{ match, directive }` pairs. First match wins. |
+
+> Runs in `handle` context only. Add a catch-all rule (`match: () => true`) if you want a guaranteed fallback.
+
+#### `CacheControl.local(directive)`
+
+Load-level enhancer. Sets `Cache-Control` for the current route via `setHeaders()`. Use this to override a global rule for a specific page.
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `directive` | `CacheDirective` | The directive string to apply. |
+
+#### `CacheControl.directive`
+
+Named helpers that produce correctly-formatted `Cache-Control` strings.
+
+| Helper | Directive | When to use |
+|--------|-----------|-------------|
+| `noStore` | `no-store` | Sensitive data — never cache (user dashboards, auth responses) |
+| `noCache` | `no-cache` | Changes frequently but supports conditional GETs (ETags / Last-Modified) |
+| `noCacheNoStore` | `no-cache, no-store, must-revalidate` | Belt-and-suspenders; also covers legacy HTTP/1.0 proxies |
+| `public(maxAge, swr?)` | `public, max-age=N[, stale-while-revalidate=N]` | Publicly cacheable content; `swr` serves stale while revalidating in the background |
+| `private(maxAge)` | `private, max-age=N` | Personalised content — browser cache only, not CDNs or shared proxies |
+
+---
+
 ### `Form`
 
 Typed, ergonomic FormData extraction. Works standalone or as an enhancer.
@@ -389,7 +446,15 @@ reviver(key, value)   // JSON.parse reviver — coerces strings to typed primiti
 
 ```ts
 // Core
-EnhanceInput<CallType>     // event passed to all enhancers
+EnhanceInput<CallType>     // event passed to all enhancers — includes all RequestEvent properties:
+                           //   cookies, fetch, locals, params, request, route, url
+                           //   setHeaders(headers)      — set response headers (no set-cookie; use cookies API)
+                           //   isDataRequest            — true when client fetches +page/layout.server.js data
+                           //   isSubRequest             — true for same-origin server-side fetch (no HTTP round-trip)
+                           //   isRemoteRequest          — true when request comes from a remote function
+                           //   tracing                  — OpenTelemetry spans (no-ops when tracing disabled; since SK 2.31)
+                           //   + handle: resolve, event, responseHandlers
+                           //   + load:   parent, depends, untrack
 EnhanceFunction<CallType>  // (event: EnhanceInput) => MaybePromise<object | Response>
 EnhanceHandle              // final handle fn — ({ event, resolve, context }) => MaybePromise<Response>
 EnhanceLoad                // final load fn
@@ -411,6 +476,8 @@ RecordTraceMetricEntry     // { method: string; path: string; status: number; du
 RequestTraceLocals         // { trace?: { id: string; started_at: bigint } }
 RequestCorrelationLocals   // { correlation_id?: string; request_started_at?: number }
 CSRFChecker                // { regex(...patterns): checker; list(...paths): checker }
+CacheDirective             // union of valid Cache-Control strings (+ open string & {})
+CacheRule                  // { match: RegExp | ((pathname) => boolean); directive: CacheDirective }
 ```
 
 ---

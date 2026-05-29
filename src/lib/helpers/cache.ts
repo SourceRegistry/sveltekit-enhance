@@ -92,3 +92,5 @@ export const CacheControl = {
             return {};
         },
 };
+
+export const directive = CacheControl.directive;
