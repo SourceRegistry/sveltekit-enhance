@@ -1,4 +1,5 @@
 export * from './auth.js'
+export * from './cache.js'
 export * from './devtools.js'
 export * from './featureflag.js'
 export * from './form.ts'

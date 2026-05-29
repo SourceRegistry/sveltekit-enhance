@@ -40,6 +40,32 @@ export type EnhanceInput<
     callType: CallType;
     fetch: typeof fetch;
     getClientAddress?: () => string;
+    /**
+     * Set response headers. Available in all contexts (handle, load, action, method).
+     * Cannot set `set-cookie` — use the `cookies` API instead.
+     */
+    setHeaders: (headers: Record<string, string>) => void;
+    /**
+     * `true` if the request comes from the client asking for `+page/layout.server.js` data.
+     * Available in all contexts (handle, load, action, method).
+     */
+    isDataRequest: boolean;
+    /**
+     * `true` for `+server.js` calls made via same-origin `fetch` on the server (no HTTP overhead).
+     * Available in all contexts (handle, load, action, method).
+     */
+    isSubRequest: boolean;
+    /**
+     * Access to OpenTelemetry spans. Spans are no-ops when tracing is disabled.
+     * Available in all contexts (handle, load, action, method).
+     * @since SvelteKit 2.31.0
+     */
+    tracing: RequestEvent['tracing'];
+    /**
+     * `true` if the request comes from the client via a remote function.
+     * Available in all contexts (handle, load, action, method).
+     */
+    isRemoteRequest: boolean;
     get errorHandlers(): EnhanceErrorHandler[];
 } & (CallType extends 'handle'
     ? {
