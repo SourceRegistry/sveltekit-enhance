@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.3.3...v1.4.0) (2026-05-29)
+
+
+### Features
+
+* added cache helpers. ([d8dd899](https://github.com/SourceRegistry/sveltekit-enhance/commit/d8dd899b2ed83f5f2156f7ef36ba39e56ada95e1))
+
 ## [1.3.3](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.3.2...v1.3.3) (2026-05-18)
 
 
