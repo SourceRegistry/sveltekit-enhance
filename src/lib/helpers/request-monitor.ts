@@ -76,7 +76,7 @@ export const RequestMonitor = {
                     request_id: requestId,
                     method: event.request.method,
                     route,
-                    url: event.url,
+                    url: event.url.toString(),
                     status: response.status,
                     duration_ms: elapsedMs,
                     client_ip: event?.getClientAddress?.()
