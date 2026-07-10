@@ -17,6 +17,7 @@ export type RequestTraceLocals = {
 export type RecordTraceMetricEntry = {
     method: string,
     path: string,
+    url: URL,
     status: number,
     durationMs: number,
 }
@@ -66,6 +67,7 @@ export const RequestMonitor = {
                 record?.({
                     method: event.request.method,
                     path: route,
+                    url: event.url,
                     status: response.status,
                     durationMs: elapsedMs,
                 });
@@ -74,6 +76,7 @@ export const RequestMonitor = {
                     request_id: requestId,
                     method: event.request.method,
                     route,
+                    url: event.url,
                     status: response.status,
                     duration_ms: elapsedMs,
                     client_ip: event?.getClientAddress?.()
@@ -96,6 +99,7 @@ export const RequestMonitor = {
                 record?.({
                     method: event.request.method,
                     path: route,
+                    url: event.url,
                     status: 500,
                     durationMs: elapsedMs,
                 });
@@ -103,11 +107,12 @@ export const RequestMonitor = {
                     request_id: requestId,
                     method: event.request.method,
                     route,
+                    url: event.url,
                     duration_ms: elapsedMs,
                     client_ip: event?.getClientAddress?.(),
                     error: error instanceof Error
                         ? {name: error.name, message: error.message}
-                        : {value: String(error)}
+                        : {value: await Promise.resolve(JSON.stringify(error)).catch(() => String(error))}
                 });
                 throw error;
             }
