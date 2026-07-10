@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.4.1...v1.4.2) (2026-07-10)
+
+
+### Bug Fixes
+
+* added url to request-monitor ([002a9c0](https://github.com/SourceRegistry/sveltekit-enhance/commit/002a9c0cd75cd2dfe39062984bcc6016c5881815))
+
 ## [1.4.1](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.4.0...v1.4.1) (2026-07-10)
 
 
