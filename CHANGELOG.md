@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.4.2...v1.5.0) (2026-07-12)
+
+
+### Bug Fixes
+
+* resolve svelte-check errors in request-rate-limit.ts ([a0bfbaa](https://github.com/SourceRegistry/sveltekit-enhance/commit/a0bfbaacfc6e4877217824e9cc3b4391c99b256d))
+
+
+### Features
+
+* add request rate-limit with pluggable store ([a7fc187](https://github.com/SourceRegistry/sveltekit-enhance/commit/a7fc1879aaadcadde5af7315431514ce11ff8e4f))
+
 ## [1.4.2](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.4.1...v1.4.2) (2026-07-10)
 
 

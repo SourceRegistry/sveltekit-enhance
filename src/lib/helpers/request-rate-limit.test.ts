@@ -25,10 +25,10 @@ const createInput = (overrides: {
 
 describe('RequestRateLimit', () => {
     it('allows requests under the limit and decorates response headers', async () => {
-        const guard = RequestRateLimit.inspect({
+        const guard = RequestRateLimit({
             rules: [{id: 'default', pattern: /^\/api\//, limit: 2, windowMs: 60_000}],
             store: createMemoryRateLimitStore()
-        });
+        }).inspect;
 
         const {input, responseHandlers} = createInput();
         await guard(input);
@@ -42,10 +42,10 @@ describe('RequestRateLimit', () => {
     });
 
     it('throws a 429 response once the limit is exceeded', async () => {
-        const guard = RequestRateLimit.inspect({
+        const guard = RequestRateLimit({
             rules: [{id: 'default', pattern: /^\/api\//, limit: 1, windowMs: 60_000}],
             store: createMemoryRateLimitStore()
-        });
+        }).inspect;
 
         await guard(createInput().input);
 
@@ -63,10 +63,10 @@ describe('RequestRateLimit', () => {
     });
 
     it('ignores requests that do not match any rule', async () => {
-        const guard = RequestRateLimit.inspect({
+        const guard = RequestRateLimit({
             rules: [{id: 'default', pattern: /^\/only-this\//, limit: 1, windowMs: 60_000}],
             store: createMemoryRateLimitStore()
-        });
+        }).inspect;
 
         const {input, responseHandlers} = createInput({pathname: '/other'});
         await guard(input);
@@ -74,10 +74,10 @@ describe('RequestRateLimit', () => {
     });
 
     it('filters rules by method', async () => {
-        const guard = RequestRateLimit.inspect({
+        const guard = RequestRateLimit({
             rules: [{id: 'writes', pattern: /^\/api\//, methods: ['POST'], limit: 1, windowMs: 60_000}],
             store: createMemoryRateLimitStore()
-        });
+        }).inspect;
 
         const {input: getInput, responseHandlers: getHandlers} = createInput({method: 'GET'});
         await guard(getInput);
@@ -89,10 +89,10 @@ describe('RequestRateLimit', () => {
     });
 
     it('does nothing when disabled', async () => {
-        const guard = RequestRateLimit.inspect({
+        const guard = RequestRateLimit({
             enabled: false,
             rules: [{id: 'default', pattern: /^\/api\//, limit: 1, windowMs: 60_000}]
-        });
+        }).inspect;
 
         const {input, responseHandlers} = createInput();
         await guard(input);
@@ -100,11 +100,11 @@ describe('RequestRateLimit', () => {
     });
 
     it('tracks separate buckets per client identifier', async () => {
-        const guard = RequestRateLimit.inspect({
+        const guard = RequestRateLimit({
             rules: [{id: 'default', pattern: /^\/api\//, limit: 1, windowMs: 60_000}],
             clientIdentifier: (input) => input.request.headers.get('x-client') ?? 'anon',
             store: createMemoryRateLimitStore()
-        });
+        }).inspect;
 
         const {input: clientA} = createInput({headers: {'x-client': 'a'}});
         const {input: clientB} = createInput({headers: {'x-client': 'b'}});
@@ -115,12 +115,12 @@ describe('RequestRateLimit', () => {
     });
 
     it('uses correlationHeader for both success and rejection responses', async () => {
-        const guard = RequestRateLimit.inspect({
+        const guard = RequestRateLimit({
             rules: [{id: 'default', pattern: /^\/api\//, limit: 1, windowMs: 60_000}],
             correlationHeader: 'x-trace-id',
             correlationId: () => 'trace-abc',
             store: createMemoryRateLimitStore()
-        });
+        }).inspect;
 
         const {input, responseHandlers} = createInput();
         await guard(input);
@@ -137,11 +137,11 @@ describe('RequestRateLimit', () => {
 
     it('logs a warning when a request is rate limited', async () => {
         const logger = {warn: vi.fn(), info: vi.fn(), error: vi.fn(), debug: vi.fn()} as any;
-        const guard = RequestRateLimit.inspect({
+        const guard = RequestRateLimit({
             rules: [{id: 'default', pattern: /^\/api\//, limit: 1, windowMs: 60_000}],
             logger,
             store: createMemoryRateLimitStore()
-        });
+        }).inspect;
 
         await guard(createInput().input);
         await expect(guard(createInput().input)).rejects.toBeInstanceOf(Response);
@@ -151,10 +151,10 @@ describe('RequestRateLimit', () => {
     it('resets the bucket once the window elapses', async () => {
         vi.useFakeTimers();
         try {
-            const guard = RequestRateLimit.inspect({
+            const guard = RequestRateLimit({
                 rules: [{id: 'default', pattern: /^\/api\//, limit: 1, windowMs: 1_000}],
                 store: createMemoryRateLimitStore()
-            });
+            }).inspect;
 
             await guard(createInput().input);
             await expect(guard(createInput().input)).rejects.toBeInstanceOf(Response);
@@ -174,10 +174,10 @@ describe('RequestRateLimit', () => {
             count: 1,
             resetAt: now + windowMs
         }));
-        const guard = RequestRateLimit.inspect({
+        const guard = RequestRateLimit({
             rules: [{id: 'default', pattern: /^\/api\//, limit: 5, windowMs: 60_000}],
             store: {increment}
-        });
+        }).inspect;
 
         const {input} = createInput({getClientAddress: () => '203.0.113.7'});
         await guard(input);
@@ -189,10 +189,10 @@ describe('RequestRateLimit', () => {
             count: 1,
             resetAt: now + windowMs
         }));
-        const guard = RequestRateLimit.inspect({
+        const guard = RequestRateLimit({
             rules: [{id: 'default', pattern: /^\/api\//, limit: 5, windowMs: 60_000}],
             store: {increment}
-        });
+        }).inspect;
 
         const {input} = createInput({
             getClientAddress: () => {
@@ -210,10 +210,10 @@ describe('RequestRateLimit', () => {
         }));
         const store: RateLimitStore = {increment};
 
-        const guard = RequestRateLimit.inspect({
+        const guard = RequestRateLimit({
             rules: [{id: 'default', pattern: /^\/api\//, limit: 5, windowMs: 60_000}],
             store
-        });
+        }).inspect;
 
         const {input} = createInput();
         await guard(input);

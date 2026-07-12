@@ -135,10 +135,10 @@ export type RequestRateLimitOptions<RuleId extends string> = {
 
 };
 
-export const RequestRateLimit = ({
-    inspect: <RuleId extends string>(
-        options: RequestRateLimitOptions<RuleId>
-    ) => async (input: EnhanceInput<'handle'>) => {
+export const RequestRateLimit = <RuleId extends string>(
+    options: RequestRateLimitOptions<RuleId>
+) => ({
+    inspect: async (input: EnhanceInput<'handle'>) => {
         if (options.enabled === false) return;
         const method = input.request.method.toUpperCase();
         const pathname = input.url.pathname;
