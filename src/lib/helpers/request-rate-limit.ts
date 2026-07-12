@@ -1,6 +1,6 @@
 import type {EnhanceInput, EnhanceResponseHandler, MaybePromise} from "../index.js";
-import {ClientIp} from "./internal/client_ip.js";
 import type {Logger} from "./internal/logger.js";
+import {ClientIp} from "./internal/client_ip.js";
 
 export type RateLimitRule<RuleId extends string = string> = {
     id: RuleId;
