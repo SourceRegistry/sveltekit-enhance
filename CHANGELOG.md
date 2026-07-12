@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.5.0...v1.5.1) (2026-07-12)
+
+
+### Bug Fixes
+
+* request-rate-limit.ts api ([c8b05e7](https://github.com/SourceRegistry/sveltekit-enhance/commit/c8b05e743cfbfa6b3e8ad79b003abcae68b86b57))
+
 # [1.5.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.4.2...v1.5.0) (2026-07-12)
 
 
