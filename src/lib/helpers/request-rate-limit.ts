@@ -1,6 +1,6 @@
-import type {EnhanceInput, MaybePromise} from "@sourceregistry/sveltekit-enhance";
-import {ClientIp} from "$lib/helpers/internal/client_ip.js";
-import type {Logger} from "$lib/helpers/internal/logger.js";
+import type {EnhanceInput, EnhanceResponseHandler, MaybePromise} from "../index.js";
+import {ClientIp} from "./internal/client_ip.js";
+import type {Logger} from "./internal/logger.js";
 
 export type RateLimitRule<RuleId extends string = string> = {
     id: RuleId;
@@ -192,7 +192,7 @@ export const RequestRateLimit = ({
             );
         }
 
-        input.responseHandlers.push(({response}) =>
+        const respond: EnhanceResponseHandler = ({response}) =>
             decorateRateLimitHeaders(response, {
                 limit: rule.limit,
                 remaining,
@@ -200,8 +200,8 @@ export const RequestRateLimit = ({
                 windowMs: rule.windowMs,
                 correlationId,
                 correlationHeader: options.correlationHeader
-            })
-        );
+            });
+        input.responseHandlers.push(respond);
     }
 });
 
