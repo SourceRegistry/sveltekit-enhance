@@ -1,7 +1,7 @@
 import {json} from '@sveltejs/kit';
 import {type EnhanceFunction, type EnhanceInput, error} from "../index.js";
 import type {MaybePromise} from "../index.js";
-import type {Logger} from "./logger.js";
+import type {Logger} from "./internal/logger.js";
 
 function isContentType(request: Request, ...types: string[]) {
     const type = request.headers.get('content-type')?.split(';', 1)[0].trim() ?? '';

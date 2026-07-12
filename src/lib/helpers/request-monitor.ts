@@ -1,5 +1,5 @@
 import type {EnhanceFunction, EnhanceInput} from "../index.js";
-import type {Logger} from "./logger.js";
+import type {Logger} from "./internal/logger.js";
 import {randomUUID} from "node:crypto";
 
 const durationMs = (startedAt: bigint) => Number(process.hrtime.bigint() - startedAt) / 1_000_000;
