@@ -137,10 +137,12 @@ const createContext = (data: FormData) => {
                         : (parser as (name: string) => T)(name),
                 processor
             ),
-        number: (name: string) => number(data, name),
+        number: (name: string) => number(data, name) ?? undefined,
         number$: (name: string) => number$(data, name),
-        boolean: (name: string) => boolean(data, name),
+        _number: (name: string) => number(data, name),
+        boolean: (name: string) => boolean(data, name) ?? undefined,
         boolean$: (name: string) => boolean$(data, name),
+        _boolean: (name: string) => boolean(data, name),
         json: <T = unknown, F = T>(
             name: string,
             transformer: (val: F) => T = (val) => <T>(<unknown>val)
@@ -273,7 +275,9 @@ export function number(formdata: FormData, name: string) {
     if (!formdata.has(name)) {
         return undefined;
     }
-    const num = Number(formdata.get(name));
+    const number = formdata.get(name)
+    if (number === null) return null;
+    const num = Number(number);
     if (isNaN(num)) {
         fail(400, {targets: [name], message: `${name} isn't of type number`});
     }
@@ -282,17 +286,16 @@ export function number(formdata: FormData, name: string) {
 
 export function number$(formdata: FormData, name: string) {
     const _number = number(formdata, name);
-    if (_number === undefined) {
+    if (_number === undefined || _number === null) {
         return fail(400, {targets: [name], message: `${name} is required`});
     }
     return _number;
 }
 
 export function boolean(formdata: FormData, name: string) {
-    if (!formdata.has(name)) {
-        return undefined;
-    }
+    if (!formdata.has(name)) return undefined;
     const data = formdata.get(name) as string;
+    if (data === null) return null;
     const num = Number(data);
     if (!isNaN(num)) {
         return num > 0;
