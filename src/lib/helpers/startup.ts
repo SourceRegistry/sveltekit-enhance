@@ -1,5 +1,6 @@
 import type { EnhanceInput } from "../index.js";
 import {Deferred} from "./internal/Deferred.js";
+import {dev} from '$app/environment';
 
 export type StartupConfiguration = {
     showPage: string;
@@ -40,7 +41,7 @@ export const StartUp = {
         }
         return async (input: EnhanceInput<'handle'>) => {
             const ready = isReady();
-            if (ready && input.url.pathname === showPage) {
+            if (ready && !dev && input.url.pathname === showPage) {
                 throw new Response(null, {status: 302, headers: {Location: readyRedirect}})
             }
             if (!ready && !isAllowed(input)) {
