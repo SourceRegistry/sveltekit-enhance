@@ -1,3 +1,16 @@
+# [1.7.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.6.0...v1.7.0) (2026-07-14)
+
+
+### Bug Fixes
+
+* don't ready-redirect showPage in dev ([161b56b](https://github.com/SourceRegistry/sveltekit-enhance/commit/161b56bae665251d7fab23d0038889c30196135d))
+
+
+### Features
+
+* add StartUp helper, export from index, doc it ([da1eda3](https://github.com/SourceRegistry/sveltekit-enhance/commit/da1eda358dc0346eb105faa62da618f3b423b5ca))
+* redirect showPage to readyRedirect once app is ready ([85fcc26](https://github.com/SourceRegistry/sveltekit-enhance/commit/85fcc2699e6d31f44eefa0640859c34456a52ad7))
+
 # [1.6.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.5.1...v1.6.0) (2026-07-14)
 
 
