@@ -309,6 +309,38 @@ Locals set: `trace: { id: string; started_at: bigint }`.
 
 ---
 
+### `StartUp`
+
+Gates request handling until app-startup work (DB connect, cache warm, etc.) resolves. Requests during startup get a `503` (JSON) or redirect to a startup page (HTML), both with `Retry-After: 4`. Any rejected startup item calls `onFailure` (defaults to logging + `process.exit(1)`).
+
+```ts
+import { StartUp, Deferred } from '@sourceregistry/sveltekit-enhance';
+
+const dbReady = Deferred.Derive(db.connect());
+
+export const handle = enhance.handle(
+    myHandler,
+    StartUp.await([dbReady], {
+        showPage: '/startup',       // HTML requests are redirected here while not ready
+        showJSON: { error: 'service_starting', message: 'Application is initializing' },
+        allowedPaths: ['/health'],  // always allowed through, in addition to showPage
+    }),
+);
+```
+
+#### `StartupConfiguration`
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `showPage` | `string` | `/startup` | Path HTML requests are redirected to while not ready; always allowed through |
+| `showJSON` | `Record<string, any>` | `{ error: 'service_starting', message: 'Application is initializing' }` | Body returned for non-HTML requests |
+| `allowedPaths` | `string[]` | `[]` | Extra paths allowed through before startup completes |
+| `onFailure` | `(reason: unknown) => void` | logs to stderr + `process.exit(1)` | Called when a startup item rejects |
+
+`waitOn` accepts `Deferred` instances or plain `Promise`s (wrapped via `Deferred.Derive`).
+
+---
+
 ### `CacheControl`
 
 Sets `Cache-Control` response headers. Provides named directive helpers so policies are readable at a glance, and two enhancers — one for broad handle-level rules, one for per-route load-level overrides.
