@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.5.1...v1.6.0) (2026-07-14)
+
+
+### Features
+
+* added nullable numbers and boolean to FormContext ([0ab3011](https://github.com/SourceRegistry/sveltekit-enhance/commit/0ab30115807f39ca3822f4151f970d00c6ac3b00))
+
 ## [1.5.1](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.5.0...v1.5.1) (2026-07-12)
 
 
