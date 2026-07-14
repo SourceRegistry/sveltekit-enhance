@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.7.0...v1.7.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* force 503 status on startup HTML fallthrough ([d80498d](https://github.com/SourceRegistry/sveltekit-enhance/commit/d80498df2976961d6be57f2ed791dd27370baa05))
+
 # [1.7.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.6.0...v1.7.0) (2026-07-14)
 
 
