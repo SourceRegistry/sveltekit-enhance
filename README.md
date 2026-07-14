@@ -311,7 +311,7 @@ Locals set: `trace: { id: string; started_at: bigint }`.
 
 ### `StartUp`
 
-Gates request handling until app-startup work (DB connect, cache warm, etc.) resolves. Requests during startup get a `503` (JSON) or redirect to a startup page (HTML), both with `Retry-After: 4`. Any rejected startup item calls `onFailure` (defaults to logging + `process.exit(1)`).
+Gates request handling until app-startup work (DB connect, cache warm, etc.) resolves. Requests during startup get a `503` (JSON) or redirect to a startup page (HTML), both with `Retry-After: 4`. Once ready, `showPage` itself redirects to `readyRedirect` (so a plain Svelte page with no server guard can't be visited after startup completes). Any rejected startup item calls `onFailure` (defaults to logging + `process.exit(1)`).
 
 ```ts
 import { StartUp, Deferred } from '@sourceregistry/sveltekit-enhance';
@@ -324,6 +324,7 @@ export const handle = enhance.handle(
         showPage: '/startup',       // HTML requests are redirected here while not ready
         showJSON: { error: 'service_starting', message: 'Application is initializing' },
         allowedPaths: ['/health'],  // always allowed through, in addition to showPage
+        readyRedirect: '/',         // where showPage redirects to once ready
     }),
 );
 ```
@@ -336,6 +337,7 @@ export const handle = enhance.handle(
 | `showJSON` | `Record<string, any>` | `{ error: 'service_starting', message: 'Application is initializing' }` | Body returned for non-HTML requests |
 | `allowedPaths` | `string[]` | `[]` | Extra paths allowed through before startup completes |
 | `onFailure` | `(reason: unknown) => void` | logs to stderr + `process.exit(1)` | Called when a startup item rejects |
+| `readyRedirect` | `string` | `/` | Where `showPage` 302-redirects to once ready |
 
 `waitOn` accepts `Deferred` instances or plain `Promise`s (wrapped via `Deferred.Derive`).
 

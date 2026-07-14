@@ -6,6 +6,7 @@ export type StartupConfiguration = {
     showJSON: Record<string, any>
     allowedPaths: string[]
     onFailure: (reason: unknown) => void
+    readyRedirect: string;
 }
 
 export const StartUp = {
@@ -17,7 +18,8 @@ export const StartUp = {
             onFailure = (reason: unknown) => {
                 process.stderr.write(`Unable to startup application because of unresolved startup item reason: ${reason}`)
                 process.exit(1)
-            }
+            },
+            readyRedirect = "/"
         } = config;
         const deferredPromises = waitOn.map((r) => {
             if (r instanceof Deferred) return r;
@@ -37,7 +39,11 @@ export const StartUp = {
             return allowedPaths.includes(event.url.pathname) || event.url.pathname === showPage
         }
         return async (input: EnhanceInput<'handle'>) => {
-            if (!isReady() && !isAllowed(input)) {
+            const ready = isReady();
+            if (ready && input.url.pathname === showPage) {
+                throw new Response(null, {status: 302, headers: {Location: readyRedirect}})
+            }
+            if (!ready && !isAllowed(input)) {
                 const acceptsHtml = input.request.headers.get('accept')?.includes('text/html') ?? false;
                 if (acceptsHtml) {
                     const response = await input.fetch(showPage)
