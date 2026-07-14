@@ -48,8 +48,9 @@ export const StartUp = {
                 const acceptsHtml = input.request.headers.get('accept')?.includes('text/html') ?? false;
                 if (acceptsHtml) {
                     const response = await input.fetch(showPage)
-                    response.headers.append('Retry-After', '4')
-                    throw response;
+                    const headers = new Headers(response.headers)
+                    headers.set('Retry-After', '4')
+                    throw new Response(response.body, {status: 503, headers});
                 } else {
                     throw new Response(JSON.stringify(showJSON), {
                         status: 503,
