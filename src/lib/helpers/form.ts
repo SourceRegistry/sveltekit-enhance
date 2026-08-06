@@ -275,10 +275,10 @@ export function number(formdata: FormData, name: string) {
     if (!formdata.has(name)) {
         return undefined;
     }
-    const number = formdata.get(name)
-    if (number === '') return undefined;
-    if (number === null) return null;
-    const num = Number(number);
+    const val = formdata.get(name)
+    if (val === '') return undefined;
+    if (val === null) return null;
+    const num = Number(val);
     if (isNaN(num)) {
         fail(400, {targets: [name], message: `${name} isn't of type number`});
     }
