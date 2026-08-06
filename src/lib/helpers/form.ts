@@ -276,6 +276,7 @@ export function number(formdata: FormData, name: string) {
         return undefined;
     }
     const number = formdata.get(name)
+    if (number === '') return undefined;
     if (number === null) return null;
     const num = Number(number);
     if (isNaN(num)) {
@@ -295,6 +296,7 @@ export function number$(formdata: FormData, name: string) {
 export function boolean(formdata: FormData, name: string) {
     if (!formdata.has(name)) return undefined;
     const data = formdata.get(name) as string;
+    if (data === '') return false;
     if (data === null) return null;
     const num = Number(data);
     if (!isNaN(num)) {
@@ -306,7 +308,7 @@ export function boolean(formdata: FormData, name: string) {
 
 export function boolean$(formdata: FormData, name: string) {
     if (!formdata.has(name)) {
-        fail(400, {targets: [name], message: `${name} is required`});
+        return fail(400, {targets: [name], message: `${name} is required`});
     }
     const data = formdata.get(name) as string;
     const num = Number(data);
