@@ -1,3 +1,12 @@
+## [1.7.2](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.7.1...v1.7.2) (2026-08-07)
+
+
+### Bug Fixes
+
+* dependencies ([3f54120](https://github.com/SourceRegistry/sveltekit-enhance/commit/3f5412018ecd35902a131bb54395b1e7b6ff197c))
+* empty '' number input should be undefined ([fd2048c](https://github.com/SourceRegistry/sveltekit-enhance/commit/fd2048cacbe6302bea2d57e9bea0a3352bf6474a))
+* empty number input should be undefined ([c554f05](https://github.com/SourceRegistry/sveltekit-enhance/commit/c554f05423d606a3a816922934e2c4a9de056cea))
+
 ## [1.7.1](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.7.0...v1.7.1) (2026-07-14)
 
 
