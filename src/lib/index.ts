@@ -4,6 +4,7 @@ import {
     type Cookies,
     error as SError,
     fail as SFail,
+    redirect as SRedirect,
     type Handle, isActionFailure,
     isHttpError,
     isRedirect,
@@ -71,6 +72,11 @@ export type EnhanceInput<
     ? {
         get responseHandlers(): EnhanceResponseHandler[];
         resolve: (event?: RequestEvent, opts?: ResolveOptions) => MaybePromise<Response>;
+        /**
+         * Resolve the request through SvelteKit directly, bypassing all remaining
+         * enhancers and the custom handle function.
+         */
+        resolveToRoute: (event?: RequestEvent, opts?: ResolveOptions) => MaybePromise<Response>;
         readonly event: RequestEvent;
     }
     : CallType extends 'load'
@@ -302,6 +308,10 @@ export const handle = <
             resolved = true;
             return apply_handle(contexts.length, event, opts);
         },
+        resolveToRoute: (event: RequestEvent = input.event, opts?: ResolveOptions) => {
+            resolved = true;
+            return input.resolve(event, opts);
+        },
         get event() {
             return input.event;
         }
@@ -340,9 +350,17 @@ export const handle = <
         if (i < contexts.length) {
             const context = contexts[i];
             const previous_resolve = contextInput.resolve;
+            const previous_resolveToRoute = contextInput.resolveToRoute;
             contextInput.resolve = (next_event: RequestEvent = event, options?: ResolveOptions) => {
                 resolved = true;
                 return apply_handle(i + 1, next_event, merge_options(parent_options, options));
+            };
+            contextInput.resolveToRoute = (
+                next_event: RequestEvent = event,
+                options?: ResolveOptions
+            ) => {
+                resolved = true;
+                return input.resolve(next_event, merge_options(parent_options, options));
             };
 
             try {
@@ -358,6 +376,7 @@ export const handle = <
                 return EnhanceErrorHandle(e, contextInput) as Promise<Response>;
             } finally {
                 contextInput.resolve = previous_resolve;
+                contextInput.resolveToRoute = previous_resolveToRoute;
             }
         }
 

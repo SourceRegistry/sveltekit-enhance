@@ -86,4 +86,39 @@ describe('enhance.handle', () => {
 
         expect(await response.text()).toBe('ok');
     });
+
+    it('resolves directly to the route and skips remaining enhancers and the custom handler', async () => {
+        expect.assertions(4);
+
+        const calls: string[] = [];
+        const routeEvent = createEvent();
+
+        const hook = handle(
+            () => {
+                calls.push('handler');
+                return new Response('handler');
+            },
+            ((input) => {
+                calls.push('first');
+                return input.resolveToRoute(routeEvent);
+            }) as EnhanceFunction<'handle'>,
+            (() => {
+                calls.push('second');
+                return {};
+            }) as EnhanceFunction<'handle'>
+        );
+
+        const response = await hook({
+            event: createEvent(),
+            resolve: async (event) => {
+                calls.push('route');
+                expect(event).toBe(routeEvent);
+                return new Response('route');
+            }
+        });
+
+        expect(await response.text()).toBe('route');
+        expect(calls).toEqual(['first', 'route']);
+        expect(calls).not.toContain('handler');
+    });
 });

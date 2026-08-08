@@ -80,6 +80,22 @@ export const handle = enhance.handle(
 );
 ```
 
+An enhancer can bypass all remaining enhancers and the custom handler while still resolving the request through SvelteKit's normal routing with `resolveToRoute`:
+
+```ts
+export const handle = enhance.handle(
+    async ({ event, resolveToRoute }) => {
+        if (event.url.pathname === '/healthz') {
+            return resolveToRoute(event);
+        }
+    },
+    enhancerA,
+    enhancerB,
+);
+```
+
+`resolveToRoute` invokes SvelteKit's native resolver, so the matching page or `+server.ts` endpoint still runs and normal headers and cookies are preserved. It skips the remaining `enhance.handle` enhancers and the custom handler. `resolve` continues through the remaining enhancers as usual. `resolveToRoute` may also be thrown when integrating with code that uses exception-based control flow.
+
 #### SSE / streaming responses
 
 `enhance.handle` automatically detects Server-Sent Events and other streaming requests (via `Accept: text/event-stream`) and bypasses the main handler entirely — going straight to SvelteKit's `resolve`. This prevents the handler from blocking indefinitely on `await resolve(event)`, which never settles for a streaming response.
