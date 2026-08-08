@@ -453,6 +453,8 @@ export const error = (
 
 export const success = <T extends Record<string, unknown> | undefined = undefined>(data: T) => data;
 
+export const redirect = SRedirect
+
 export function not_good(
     input: { callType: EnhanceInput['callType'] },
     status: number,
