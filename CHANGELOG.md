@@ -1,3 +1,15 @@
+# [1.8.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.7.2...v1.8.0) (2026-08-08)
+
+
+### Bug Fixes
+
+* added also redirect default export so all import can be from sveltekit-enhance ([9df2910](https://github.com/SourceRegistry/sveltekit-enhance/commit/9df2910e490c94901ea0375fd0a90ea29130af7d))
+
+
+### Features
+
+* add direct route resolution to handle ([4303a69](https://github.com/SourceRegistry/sveltekit-enhance/commit/4303a6978ab4636a4a72eed3ee25ceeb9bf54f62))
+
 ## [1.7.2](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.7.1...v1.7.2) (2026-08-07)
 
 
