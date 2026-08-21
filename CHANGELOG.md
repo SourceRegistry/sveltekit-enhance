@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.8.0...v1.9.0) (2026-08-21)
+
+
+### Features
+
+* **experimental:** added on featureflag is(key, predicate?), isEnabled(key), isDisabled(key) ([ebdfce1](https://github.com/SourceRegistry/sveltekit-enhance/commit/ebdfce1242fdf4695e0ce819aeba6b9d5d05ea1c))
+
 # [1.8.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.7.2...v1.8.0) (2026-08-08)
 
 
