@@ -7,7 +7,7 @@
 [![npm version](https://img.shields.io/npm/v/@sourceregistry/sveltekit-enhance?style=flat-square&color=f96743)](https://www.npmjs.com/package/@sourceregistry/sveltekit-enhance)
 [![npm downloads](https://img.shields.io/npm/dm/@sourceregistry/sveltekit-enhance?style=flat-square)](https://www.npmjs.com/package/@sourceregistry/sveltekit-enhance)
 [![license](https://img.shields.io/npm/l/@sourceregistry/sveltekit-enhance?style=flat-square)](./LICENSE)
-[![SvelteKit](https://img.shields.io/badge/SvelteKit-%5E2.58-FF3E00?style=flat-square&logo=svelte&logoColor=white)](https://kit.svelte.dev)
+[![SvelteKit](https://img.shields.io/badge/SvelteKit-3-FF3E00?style=flat-square&logo=svelte&logoColor=white)](https://svelte.dev/docs/kit)
 [![issues](https://img.shields.io/github/issues/SourceRegistry/sveltekit-enhance?style=flat-square)](https://github.com/SourceRegistry/sveltekit-enhance/issues)
 
 Wrap actions, loads, methods, and hooks with composable enhancers. Stack auth guards, feature flags, request tracing, and form parsing without touching SvelteKit's internals.
@@ -24,14 +24,14 @@ Wrap actions, loads, methods, and hooks with composable enhancers. Stack auth gu
 npm install @sourceregistry/sveltekit-enhance
 ```
 
-**Peer dependency:** `@sveltejs/kit ^2.58.0`
+**Peer dependency:** `@sveltejs/kit ^3.0.1`
 
 ---
 
 ## Overview
 
 ```ts
-import { enhance, Auth, RequestCorrelation, RequestMonitor, Form } from '@sourceregistry/sveltekit-enhance';
+import { enhance, Auth, FeatureFlag, RequestCorrelation, RequestMonitor, Form, success } from '@sourceregistry/sveltekit-enhance';
 
 // hooks.server.ts
 export const handle = enhance.handle(
@@ -242,7 +242,8 @@ export const handle = enhance.handle(myHandler, Devtools.ignore);
 
 ### `FeatureFlag`
 
-Guards routes behind SvelteKit public env vars (`$env/dynamic/public`). Always passes in `dev` mode.
+Guards routes behind SvelteKit public env vars (`$app/env/public`). Declare each flag
+with `public: true` in your app's `src/env.ts`. Always passes in `dev` mode.
 
 ```ts
 import { FeatureFlag } from '@sourceregistry/sveltekit-enhance';

@@ -1,17 +1,17 @@
 import {
     type Action,
-    type ActionResult,
     type Cookies,
     error as SError,
     fail as SFail,
     redirect as SRedirect,
-    type Handle, isActionFailure,
+    isActionFailure,
     isHttpError,
     isRedirect,
     type RequestEvent,
-    type ResolveOptions,
     type ServerLoadEvent
 } from '@sveltejs/kit';
+import type {ActionResult} from '$app/forms';
+import type {Handle, ResolveOptions} from '@sveltejs/kit/hooks';
 
 import type {RouteId as AppRouteId, LayoutParams as AppLayoutParams} from '$app/types'
 
@@ -448,8 +448,19 @@ export const fail = <T extends Record<string, unknown> | undefined = undefined>(
 
 export const error = (
     status: number,
-    body?: { message: string } extends App.Error ? App.Error | string | undefined : never
-): never => SError(status, body);
+    body?: string | (Omit<App.Error, 'status'> & {status?: number})
+): never => {
+    if (typeof body !== 'object' || body === undefined) {
+        return SError(status, body);
+    }
+
+    const {message, status: _status, ...properties} = body;
+    return (SError as (status: number, message: string, properties: Record<string, unknown>) => never)(
+        status,
+        message,
+        properties
+    );
+};
 
 export const success = <T extends Record<string, unknown> | undefined = undefined>(data: T) => data;
 

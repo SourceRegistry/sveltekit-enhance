@@ -1,8 +1,9 @@
-import {env} from '$env/dynamic/public';
-import {dev} from '$app/environment';
+import * as publicEnv from '$app/env/public';
+import {dev} from '$app/env';
 import {type EnhanceInput, not_good} from "../index.js";
 
 const _enabled = ['true', 'TRUE', 'on', 'ON', '1'];
+const env = publicEnv as Record<string, string | undefined>;
 
 export const FeatureFlagChecker = {
     enabled: (value: string) => _enabled.includes(value),
@@ -13,7 +14,7 @@ export const enabled = FeatureFlagChecker.enabled;
 export const disabled = FeatureFlagChecker.disabled;
 
 export const FeatureFlag = {
-    all: (...flags: (keyof typeof env)[]) => {
+    all: (...flags: string[]) => {
         return (input: EnhanceInput) => {
             // Which of the requested flags are *not* enabled
             const disabledFlags = flags.filter(
@@ -27,7 +28,7 @@ export const FeatureFlag = {
             return {flags};
         };
     },
-    oneOf: (...flags: (keyof typeof env)[]) => {
+    oneOf: (...flags: string[]) => {
         return (input: EnhanceInput) => {
             // True if at least one of the given flags is enabled
             const anyEnabled = flags.some((flag) =>
@@ -45,17 +46,17 @@ export const FeatureFlag = {
      * @experimental
      * @param flag
      */
-    isEnabled: (flag: keyof typeof env) => FeatureFlag.is(flag),
+    isEnabled: (flag: string) => FeatureFlag.is(flag),
     /**
      * @experimental
      * @param flag
      */
-    isDisabled: (flag: keyof typeof env) => FeatureFlag.is(flag, disabled),
+    isDisabled: (flag: string) => FeatureFlag.is(flag, disabled),
     /**
      * @experimental
      * @param flag
      * @param predicate
      */
-    is: (flag: keyof typeof env, predicate: (value: string) => boolean = enabled) =>
+    is: (flag: string, predicate: (value: string) => boolean = enabled) =>
         dev || predicate((env[flag] ?? '').toUpperCase())
 };

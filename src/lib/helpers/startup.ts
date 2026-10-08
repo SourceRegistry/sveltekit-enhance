@@ -1,6 +1,6 @@
 import type { EnhanceInput } from "../index.js";
 import {Deferred} from "./internal/Deferred.js";
-import {dev} from '$app/environment';
+import {dev} from '$app/env';
 
 export type StartupConfiguration = {
     showPage: string;

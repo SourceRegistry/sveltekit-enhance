@@ -1,5 +1,20 @@
 import {describe, expect, it} from 'vitest';
-import {handle, type EnhanceFunction} from './index.js';
+import {handle, error, type EnhanceFunction} from './index.js';
+import {isHttpError} from '@sveltejs/kit';
+
+describe('error', () => {
+    it('passes an object message to SvelteKit with the requested status', () => {
+        expect.assertions(3);
+        try {
+            error(404, {message: 'not found', status: 500});
+        } catch (cause) {
+            expect(isHttpError(cause)).toBe(true);
+            if (!isHttpError(cause)) return;
+            expect(cause.status).toBe(404);
+            expect(cause.body.message).toBe('not found');
+        }
+    });
+});
 
 const createEvent = () =>
     ({
