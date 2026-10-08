@@ -1,4 +1,5 @@
 import type { EnhanceFunction, EnhanceInput } from '../index.js';
+import {matchesPattern} from './internal/matches_pattern.js';
 
 export type CacheDirective =
     | 'no-store'
@@ -15,7 +16,7 @@ export type CacheRule = {
 };
 
 const matches = (rule: CacheRule, pathname: string): boolean =>
-    rule.match instanceof RegExp ? rule.match.test(pathname) : rule.match(pathname);
+    rule.match instanceof RegExp ? matchesPattern(rule.match, pathname) : rule.match(pathname);
 
 export const CacheControl = {
     // ── Directive helpers ──────────────────────────────────────────────────────

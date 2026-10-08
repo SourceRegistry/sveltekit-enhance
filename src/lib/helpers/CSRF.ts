@@ -2,6 +2,7 @@ import {json} from '@sveltejs/kit';
 import {type EnhanceFunction, type EnhanceInput, error} from "../index.js";
 import type {MaybePromise} from "../index.js";
 import type {Logger} from "./internal/logger.js";
+import {matchesPattern} from "./internal/matches_pattern.js";
 
 function isContentType(request: Request, ...types: string[]) {
     const type = request.headers.get('content-type')?.split(';', 1)[0].trim() ?? '';
@@ -55,7 +56,7 @@ export const CSRFChecker = {
     regex:
         (...oneOf: RegExp[]) =>
             (input: { url: URL }) =>
-                oneOf.some((exp) => exp[Symbol.match](input.url.pathname)),
+                oneOf.some((exp) => matchesPattern(exp, input.url.pathname)),
     list:
         (...oneOf: string[]) =>
             (input: { url: URL }) =>

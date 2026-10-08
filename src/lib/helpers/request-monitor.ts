@@ -37,6 +37,12 @@ export const RequestMonitor = {
 
         return async (event: EnhanceInput<'handle'>) => {
             const locals = event.locals as App.Locals & RequestTraceLocals;
+            let clientIp: string | undefined;
+            try {
+                clientIp = event.getClientAddress?.();
+            } catch {
+                // Some adapters cannot provide a client address for every request.
+            }
             const requestId =
                 (locals as any).correlation_id ??
                 (locals as any).request_id ??
@@ -54,7 +60,7 @@ export const RequestMonitor = {
                 request_id: requestId,
                 method: event.request.method,
                 route,
-                client_ip: event?.getClientAddress?.()
+                client_ip: clientIp
             });
 
             try {
@@ -79,7 +85,7 @@ export const RequestMonitor = {
                     url: event.url.toString(),
                     status: response.status,
                     duration_ms: elapsedMs,
-                    client_ip: event?.getClientAddress?.()
+                    client_ip: clientIp
                 };
 
                 if (response.status >= 500) {
@@ -109,7 +115,7 @@ export const RequestMonitor = {
                     route,
                     url: event.url,
                     duration_ms: elapsedMs,
-                    client_ip: event?.getClientAddress?.(),
+                    client_ip: clientIp,
                     error: error instanceof Error
                         ? {name: error.name, message: error.message}
                         : {value: await Promise.resolve(JSON.stringify(error)).catch(() => String(error))}

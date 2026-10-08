@@ -3,7 +3,8 @@ import {dev} from '$app/env';
 import {type EnhanceInput, not_good} from "../index.js";
 
 const _enabled = ['true', 'TRUE', 'on', 'ON', '1'];
-const env = publicEnv as Record<string, string | undefined>;
+const env = publicEnv as Record<string, unknown>;
+const flagValue = (flag: string) => String(env[flag] ?? '').toUpperCase();
 
 export const FeatureFlagChecker = {
     enabled: (value: string) => _enabled.includes(value),
@@ -18,7 +19,7 @@ export const FeatureFlag = {
         return (input: EnhanceInput) => {
             // Which of the requested flags are *not* enabled
             const disabledFlags = flags.filter(
-                (flag) => !_enabled.includes((env[flag] ?? '').toUpperCase())
+                (flag) => !_enabled.includes(flagValue(flag))
             );
             if (!(disabledFlags.length === 0 || dev))
                 not_good(input, 503, {
@@ -32,7 +33,7 @@ export const FeatureFlag = {
         return (input: EnhanceInput) => {
             // True if at least one of the given flags is enabled
             const anyEnabled = flags.some((flag) =>
-                _enabled.includes((env[flag] ?? '').toUpperCase())
+                _enabled.includes(flagValue(flag))
             );
             if (!(anyEnabled || dev))
                 not_good(input, 503, {
@@ -58,5 +59,5 @@ export const FeatureFlag = {
      * @param predicate
      */
     is: (flag: string, predicate: (value: string) => boolean = enabled) =>
-        dev || predicate((env[flag] ?? '').toUpperCase())
+        dev || predicate(flagValue(flag))
 };

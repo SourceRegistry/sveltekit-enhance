@@ -1,6 +1,7 @@
 import type {EnhanceInput, EnhanceResponseHandler, MaybePromise} from "../index.js";
 import type {Logger} from "./internal/logger.js";
 import {ClientIp} from "./internal/client_ip.js";
+import {matchesPattern} from "./internal/matches_pattern.js";
 
 export type RateLimitRule<RuleId extends string = string> = {
     id: RuleId;
@@ -72,7 +73,7 @@ const findRule = <RuleId extends string>(
 ) =>
     rules.find(
         (rule) =>
-            rule.pattern.test(pathname) && (!rule.methods || includes(rule.methods, method.toUpperCase()))
+            matchesPattern(rule.pattern, pathname) && (!rule.methods || includes(rule.methods, method.toUpperCase()))
     );
 
 const getClientIdentifier = (input: EnhanceInput<'handle'>) => {
@@ -204,4 +205,3 @@ export const RequestRateLimit = <RuleId extends string>(
         input.responseHandlers.push(respond);
     }
 });
-

@@ -108,9 +108,18 @@
         {
           "assets": [
             "package.json",
+            "package-lock.json",
             "CHANGELOG.md"
           ],
           "message": "sveltekit-enhance(release): 🚀 v${nextRelease.version}\n\n${nextRelease.notes}"
+        }
+      ],
+      [
+        "@semantic-release/github",
+        {
+          "successCommentCondition": false,
+          "failCommentCondition": false,
+          "releasedLabels": false
         }
       ]
     ]

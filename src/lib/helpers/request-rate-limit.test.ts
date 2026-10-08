@@ -62,6 +62,19 @@ describe('RequestRateLimit', () => {
         }
     });
 
+    it('matches a global route pattern on every request', async () => {
+        const pattern = /^\/api\//g;
+        pattern.lastIndex = 2;
+        const guard = RequestRateLimit({
+            rules: [{id: 'global', pattern, limit: 1, windowMs: 60_000}],
+            store: createMemoryRateLimitStore()
+        }).inspect;
+
+        await guard(createInput().input);
+        await expect(guard(createInput().input)).rejects.toBeInstanceOf(Response);
+        expect(pattern.lastIndex).toBe(2);
+    });
+
     it('ignores requests that do not match any rule', async () => {
         const guard = RequestRateLimit({
             rules: [{id: 'default', pattern: /^\/only-this\//, limit: 1, windowMs: 60_000}],
