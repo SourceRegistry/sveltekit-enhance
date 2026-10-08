@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.0...v2.0.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* stabilize route guards and release metadata ([8170797](https://github.com/SourceRegistry/sveltekit-enhance/commit/817079777c83ffc016ab7630ecff8aab74fe4b3d))
+
 # [2.0.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.9.0...v2.0.0) (2026-10-08)
 
 
