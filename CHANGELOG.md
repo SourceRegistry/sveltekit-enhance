@@ -1,3 +1,13 @@
+# [2.0.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.9.0...v2.0.0) (2026-10-08)
+
+
+* feat!: migrate package to SvelteKit 3 ([211096a](https://github.com/SourceRegistry/sveltekit-enhance/commit/211096a3db8e468b969e1a3f6fbaafdbadc266e4))
+
+
+### BREAKING CHANGES
+
+* SvelteKit 3 and Node.js 22.17 or newer are required; SvelteKit 2 is no longer supported.
+
 # [1.9.0](https://github.com/SourceRegistry/sveltekit-enhance/compare/v1.8.0...v1.9.0) (2026-08-21)
 
 
