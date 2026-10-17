@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {handle, error, type EnhanceFunction} from './index.js';
 import {isHttpError} from '@sveltejs/kit';
+import type {Handle} from '@sveltejs/kit/hooks';
 
 describe('error', () => {
     it('passes an object message to SvelteKit with the requested status', () => {
@@ -81,6 +82,31 @@ describe('enhance.handle', () => {
         });
 
         expect(calls).toEqual(['inner transform', 'outer transform', 'outer preload', 'outer filter']);
+    });
+
+    it('accepts a plain SvelteKit Handle as an enhancer', async () => {
+        const calls: string[] = [];
+        // Shaped like an auth library's `handle` (e.g. @sourceregistry/sveltekit-oidc).
+        const kitHandle: Handle = async ({event, resolve}) => {
+            calls.push('kit handle');
+            const response = await resolve(event);
+            response.headers.set('x-kit-handle', '1');
+            return response;
+        };
+
+        const hook = handle(({event, resolve}) => {
+            calls.push('handler');
+            return resolve(event);
+        }, kitHandle);
+
+        const response = await hook({
+            event: createEvent(),
+            resolve: async () => new Response('ok')
+        });
+
+        expect(calls).toEqual(['kit handle', 'handler']);
+        expect(response.headers.get('x-kit-handle')).toBe('1');
+        expect(await response.text()).toBe('ok');
     });
 
     it('keeps context merging for enhancers that do not resolve', async () => {
