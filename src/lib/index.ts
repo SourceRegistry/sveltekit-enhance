@@ -71,12 +71,17 @@ export type EnhanceInput<
 } & (CallType extends 'handle'
     ? {
         get responseHandlers(): EnhanceResponseHandler[];
-        resolve: (event?: RequestEvent, opts?: ResolveOptions) => MaybePromise<Response>;
+        /**
+         * Continue with the next enhancer (or the handle function). Always returns a
+         * Promise, like SvelteKit's `resolve`, so a plain SvelteKit `Handle` (e.g. an
+         * auth library's `handle`) can be passed as an enhancer.
+         */
+        resolve: (event?: RequestEvent, opts?: ResolveOptions) => Promise<Response>;
         /**
          * Resolve the request through SvelteKit directly, bypassing all remaining
          * enhancers and the custom handle function.
          */
-        resolveToRoute: (event?: RequestEvent, opts?: ResolveOptions) => MaybePromise<Response>;
+        resolveToRoute: (event?: RequestEvent, opts?: ResolveOptions) => Promise<Response>;
         readonly event: RequestEvent;
     }
     : CallType extends 'load'
@@ -118,7 +123,7 @@ export type EnhanceLoad<
 export type EnhanceHandle<EnhanceReturn extends never | any = any> = (
     input: {
         event: RequestEvent;
-        resolve(event: RequestEvent, opts?: ResolveOptions): MaybePromise<Response>;
+        resolve(event: RequestEvent, opts?: ResolveOptions): Promise<Response>;
     } & { context: EnhanceReturn }
 ) => MaybePromise<Response>;
 
