@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.1...v2.0.2) (2026-10-17)
+
+
+### Bug Fixes
+
+* **handle:** type resolve as Promise<Response> so SvelteKit Handles fit as enhancers ([#10](https://github.com/SourceRegistry/sveltekit-enhance/issues/10)) ([e041c4a](https://github.com/SourceRegistry/sveltekit-enhance/commit/e041c4aac971ef47b750485c6524a8ff376173f7))
+
 ## [2.0.1](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.0...v2.0.1) (2026-10-08)
 
 
