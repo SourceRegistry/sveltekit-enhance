@@ -123,5 +123,10 @@
         }
       ]
     ]
+  },
+  "overrides": {
+    "typedoc": {
+      "minimatch": "6.2.3"
+    }
   }
 }

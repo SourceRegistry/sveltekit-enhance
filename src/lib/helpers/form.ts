@@ -1,5 +1,6 @@
 import type {EnhanceErrorHandler, EnhanceInput, MaybePromise} from "../index.js";
 import {fail} from "../index.js";
+import {matchesPattern} from "./internal/matches_pattern.js";
 
 
 //region Validator
@@ -55,6 +56,22 @@ type SchemaOptions = {
      * @default true
      */
     revive?: boolean;
+    /**
+     * Field names (or patterns) that are never revived and always arrive as the submitted string,
+     * e.g. `['pin', 'phone', /^code\./]`. Matched against the submitted key and, when a prefix is
+     * unpacked, the key without the prefix.
+     */
+    raw?: ReadonlyArray<string | RegExp>;
+};
+
+const isRawField = (raw: SchemaOptions['raw'], key: string, prefix?: string) => {
+    if (!raw || raw.length === 0) return false;
+    const unprefixed = prefix && key.startsWith(prefix) ? key.slice(prefix.length) : key;
+    return raw.some((rule) =>
+        rule instanceof RegExp
+            ? matchesPattern(rule, key) || matchesPattern(rule, unprefixed)
+            : rule === key || rule === unprefixed
+    );
 };
 
 /** Convert only when the number prints back exactly: keeps "1e3", "1.0", "007" and ids beyond 2^53 as strings. */
@@ -803,7 +820,10 @@ export function validate<const T extends AnyValidator>(
         ...options,
         transform:
             options.transform ??
-            (options.revive === false ? (v: FormDataEntryValue) => v : (v: FormDataEntryValue) => reviver(undefined, v)),
+            ((v: FormDataEntryValue, key: string) =>
+                options.revive === false || isRawField(options.raw, key, options.prefix_name)
+                    ? v
+                    : reviver(undefined, v)),
     });
     const result = validator(value)
     if (!result.success) {
