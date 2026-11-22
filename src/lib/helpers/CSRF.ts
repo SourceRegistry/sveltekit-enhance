@@ -18,6 +18,12 @@ function isFormContentType(request: Request) {
     );
 }
 
+function acceptsJson(request: Request) {
+    return (request.headers.get('accept') ?? '')
+        .split(',')
+        .some((part) => part.split(';', 1)[0].trim().toLowerCase() === 'application/json');
+}
+
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const SAFE_LOG_HEADERS = new Set(['content-type', 'origin', 'referer', 'user-agent', 'accept', 'host']);
 
@@ -42,7 +48,7 @@ export const CSRF = {
                         [...request.headers.entries()].filter(([k]) => SAFE_LOG_HEADERS.has(k.toLowerCase()))
                     )
                 });
-                if (request.headers.get('accept') === 'application/json') {
+                if (acceptsJson(request)) {
                     return json({message}, {status: 403});
                 }
                 return error(403, {message});
