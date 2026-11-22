@@ -180,7 +180,7 @@ All helpers are available from `@sourceregistry/sveltekit-enhance` or `@sourcere
 
 ### `CSRF`
 
-Blocks cross-site form submissions on mutating methods (`POST`, `PUT`, `PATCH`, `DELETE`) with form content types. Checks the `Origin` header against the request origin. Absent `Origin` (server-side fetch, curl) is allowed through. Returns `403` — JSON body when `Accept: application/json`, SvelteKit `error()` otherwise.
+Blocks cross-site form submissions on mutating methods (`POST`, `PUT`, `PATCH`, `DELETE`) with form content types. Checks the `Origin` header against the request origin. Absent `Origin` (server-side fetch, curl) is allowed through, like SvelteKit's own check: the protection targets browsers, which always send `Origin` on cross-site form posts. Returns `403` — JSON body when the `Accept` header lists `application/json` (including multi-value headers such as `application/json, text/plain, */*`), SvelteKit `error()` otherwise.
 
 ```ts
 import { CSRF, CSRFChecker } from '@sourceregistry/sveltekit-enhance';
@@ -224,7 +224,7 @@ export const GET = enhance.method(
 );
 ```
 
-Returns `{ token: string }`. Throws `401` if the header is missing or malformed.
+Returns `{ token: string }`. The scheme must be `Bearer` (case-insensitive) followed by a single token; any other scheme (`Basic`, `Token`, ...), a missing header or extra segments throw `401`.
 
 ---
 
@@ -243,7 +243,9 @@ export const handle = enhance.handle(myHandler, Devtools.ignore);
 ### `FeatureFlag`
 
 Guards routes behind SvelteKit public env vars (`$app/env/public`). Declare each flag
-with `public: true` in your app's `src/env.ts`. Always passes in `dev` mode.
+with `public: true` in your app's `src/env.ts`.
+
+> **Dev bypass:** when SvelteKit's `dev` is `true`, every flag check passes (`FeatureFlag.all`, `FeatureFlag.oneOf`, and the experimental `isEnabled` / `is`; `isDisabled` is `true` in dev for the same reason). This is for local development only; production builds evaluate the real env values. Never use feature flags as an authorization mechanism.
 
 ```ts
 import { FeatureFlag } from '@sourceregistry/sveltekit-enhance';
@@ -322,7 +324,46 @@ type RecordTraceMetricEntry = { method: string; path: string; status: number; du
 type TraceLogger            = { debug(...args: any[]): any; info(...args: any[]): any; warn(...args: any[]): any; error(...args: any[]): any }
 ```
 
-Locals set: `trace: { id: string; started_at: bigint }`.
+Locals set: `trace: { id: string; started_at: bigint }` (`started_at` is a monotonic nanosecond reading from `performance.now()`, not wall-clock time).
+
+Logging hygiene: the logged `url` contains origin and pathname only; the query string and hash are dropped because they commonly carry tokens. Inbound `x-correlation-id` / `x-request-id` values are validated like `RequestCorrelation` (unsafe values are ignored and a UUID is generated). Only runtime-neutral APIs (`performance.now`, `globalThis.crypto`) are used, so it works on edge adapters as well as Node.
+
+---
+
+### `RequestRateLimit`
+
+Fixed-window rate limiting per rule and client. Throws a `429` JSON response (with `Retry-After` and `x-ratelimit-*` headers) once a client exceeds `limit` requests per `windowMs`; allowed responses get the `x-ratelimit-*` headers.
+
+```ts
+import { RequestRateLimit } from '@sourceregistry/sveltekit-enhance';
+
+export const handle = enhance.handle(
+    myHandler,
+    RequestRateLimit({
+        rules: [
+            { id: 'login', pattern: /^\/login$/, methods: ['POST'], limit: 5, windowMs: 60_000 },
+            { id: 'api', pattern: /^\/api\//, limit: 100, windowMs: 60_000 },
+        ],
+        // Only needed when the adapter's getClientAddress() is unavailable and you sit behind your own proxies:
+        trustProxyHeaders: true,
+        trustedProxyHops: 1,
+    }).inspect,
+);
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `rules` | required | Ordered `{ id, pattern, methods?, limit, windowMs }`; first match wins |
+| `store` | in-memory | `RateLimitStore` (`increment(key, windowMs, now)`); supply a shared store (Redis, ...) for multi-instance deployments |
+| `clientIdentifier` | `getClientAddress()` | Custom key, e.g. user id or API key |
+| `trustProxyHeaders` | `false` | Fall back to `x-forwarded-for` / `x-real-ip` when `getClientAddress()` throws. Those headers are client-controlled; enable only behind proxies that overwrite them |
+| `trustedProxyHops` | `1` | Number of trusted proxies; the Nth address from the right of `x-forwarded-for` is used |
+| `correlationHeader` / `correlationId` | none | Echo a correlation id on rate-limit responses |
+| `logger` | none | Receives `request.rate_limited` warnings |
+
+`createMemoryRateLimitStore({ cleanupIntervalMs?, maxKeys? })` is bounded (`maxKeys`, default 10 000: expired buckets are purged, then the oldest is evicted). Buckets are per process, so multi-instance deployments under-count without a shared store. With no resolvable client address, unidentified requests share one `unknown` bucket.
+
+`ClientIp(defaults?)` (also exported) exposes the parsing used for the fallback: `fromRequest(request, { trustProxyHeaders, trustedProxyHops })` and `fromForwardedFor(header, hops)`. `x-real-ip` is only consulted when `x-forwarded-for` is absent.
 
 ---
 
@@ -387,7 +428,7 @@ export const load = enhance.load(
 
 #### `CacheControl.global(...rules)`
 
-Handle-level enhancer. Iterates the rule list and sets `Cache-Control` via `setHeaders()` for the first matching pathname. When no rule matches, the header is left unset.
+Handle-level enhancer. Finds the first rule matching the pathname and applies its directive as a **default** on the final response: if the response already has a `cache-control` header (for example from `CacheControl.local` or a route's own `setHeaders`), that header wins and nothing throws. When no rule matches, the header is left unset.
 
 | Param | Type | Description |
 |-------|------|-------------|
@@ -448,6 +489,8 @@ await Form.handle(request, ({ form }) => {
 });
 ```
 
+The first argument may be a `Request` (must have a form `Content-Type`, otherwise `fail(400)`), a `FormData`, or a `Promise<FormData>`.
+
 #### Field extractors
 
 Optional variants return `undefined` when the field is absent. Required variants (`$` suffix) throw `fail(400)`.
@@ -456,18 +499,32 @@ Optional variants return `undefined` when the field is absent. Required variants
 |--------|---------|-------|
 | `string(name)` / `string$(name)` | `string \| null \| undefined` | |
 | `pattern$(name, pattern)` | `string` | `RegExp` or pattern string |
-| `number(name)` / `number$(name)` | `number \| undefined` | |
+| `number(name)` / `number$(name)` | `number \| undefined` | Empty or whitespace-only gives `undefined`; non-numeric throws `fail(400)` |
 | `boolean(name)` / `boolean$(name)` | `boolean \| undefined` | Accepts `true/false`, `1/0`, `on/off` |
-| `date(name, parser?)` / `date$(name, parser)` | `Date \| undefined` | Custom parser supported |
+| `date(name, parser?)` / `date$(name, parser)` | `Date \| undefined` | Custom parser supported; an invalid date throws `fail(400)` |
 | `json<T>(name, transformer?)` / `json$(name)` | `T \| undefined` | Optional transform fn |
-| `jsond(options)` | `any` | All FormData → nested object via dot-notation keys |
+| `jsond(options)` | `any` | All FormData → nested object via dot-notation keys. Keys with a `__proto__`, `constructor` or `prototype` segment, and nested keys that collide with an existing scalar (`a=1` + `a.b=2`), are ignored |
 | `file(name)` / `file$(name)` | `File \| null \| undefined` | |
 | `files(name)` | `File[]` | Non-empty, named files only |
 | `fileRecord(prefix, removePrefix?)` | `Record<string, File[]>` | Groups files by key prefix |
 | `array<T>(name, mapper?)` / `array$(name)` | `T[] \| undefined` | |
 | `enum(name, Enum)` / `enum$(name, Enum)` | `keyof E \| undefined` | |
 | `record(options?)` | `Record<string, any>` | All entries; optional `filter` / `transformer` |
-| `validate(schema, options?)` | `T` | Runs `Validator<T>`, throws `fail(400)` on failure |
+| `validate(schema, options?)` | `T` | Runs `Validator<T>`, throws `fail(400)` with `targets` (flat list of invalid paths). Values are revived (see below) unless you pass `options.transform` |
+
+#### Value coercion (`reviver`): read this before using `validate` / `Form.schema`
+
+`validate`, `Form.schema` and `json` / `json$` pass every **string** value through `reviver`, which converts:
+
+| Input string | Becomes |
+|--------------|---------|
+| `"true"` / `"false"` | boolean |
+| `"null"` / `"undefined"` | `null` / `undefined` |
+| `"NaN"`, `"Infinity"`, `"-Infinity"` | number |
+| `"1234"`, `"-1.5"`, `"1e3"` (canonical decimal numbers) | number |
+| `"{...}"` / `"[...]"` | parsed JSON (recursively revived) |
+
+This is convenient for typed validators, but it is **lossy for free-text fields**: a password `"1234"`, a phone number such as `"31612345678"`, an id like `"12345678901234567890"` (precision loss) or a name `"null"` arrive as numbers or `null`. Mitigations: read those fields with `form.string$` instead of `validate`, make the validator accept the revived type and stringify it, or pass your own `options.transform` to `validate` / `Form.schema` (a custom `transform` replaces the reviver entirely).
 
 #### Conditional helpers
 
@@ -477,6 +534,8 @@ form.onlyIfPresent(key, (entry) => ..., fallback?)
 form.onlyIfArrayPresent(key, (entries) => ..., fallback)
 form.selector({ fieldName: (entry, key) => ..., $default?, $error? })
 form.selector$({ ... })    // throws fail(400) if no case matches
+// selector only matches own keys of your cases object; `$`-prefixed form fields are never treated as cases.
+// Errors thrown by a case are routed to `$error` if provided, otherwise rethrown.
 form.basedOn(val, processor)
 form.process(name, parser, processor)
 ```
