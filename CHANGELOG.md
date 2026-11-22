@@ -1,3 +1,10 @@
+## [2.0.8](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.7...v2.0.8) (2026-11-22)
+
+
+### Bug Fixes
+
+* **form:** lossless reviver numbers, revive:false option; ci: audit shipped deps ([#25](https://github.com/SourceRegistry/sveltekit-enhance/issues/25)) ([14e4603](https://github.com/SourceRegistry/sveltekit-enhance/commit/14e4603f566e6b322afc01ca28719ef5da74ab94))
+
 ## [2.0.7](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.6...v2.0.7) (2026-11-22)
 
 
