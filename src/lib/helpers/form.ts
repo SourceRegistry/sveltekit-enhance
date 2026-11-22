@@ -219,10 +219,7 @@ const createContext = (data: FormData) => {
         ) => record(data, options) as T,
         validate: <T extends Validator<any>>(
             schema: T,
-            options: SchemaOptions = {
-                unpack_prefixed: true,
-                transform: (value) => value
-            }
+            options: SchemaOptions = {unpack_prefixed: true}
         ) => validate(data, schema, options)
     };
 };
@@ -276,8 +273,8 @@ export function number(formdata: FormData, name: string) {
         return undefined;
     }
     const val = formdata.get(name)
-    if (val === '') return undefined;
     if (val === null) return null;
+    if (typeof val === 'string' && val.trim() === '') return undefined;
     const num = Number(val);
     if (isNaN(num)) {
         fail(400, {targets: [name], message: `${name} isn't of type number`});
@@ -332,7 +329,11 @@ export function date(
     if (!val) {
         return null;
     }
-    return new Date(val);
+    const parsed = new Date(val);
+    if (isNaN(parsed.getTime())) {
+        fail(400, {targets: [name], message: `${name} isn't a valid date`});
+    }
+    return parsed;
 }
 
 export function date$(
@@ -340,7 +341,11 @@ export function date$(
     name: string,
     parser: (formdata: FormData, name: string) => number | string | Date
 ) {
-    return new Date(parser(formdata, name));
+    const parsed = new Date(parser(formdata, name));
+    if (isNaN(parsed.getTime())) {
+        fail(400, {targets: [name], message: `${name} isn't a valid date`});
+    }
+    return parsed;
 }
 
 export function json<T = unknown, F = T>(
@@ -396,12 +401,11 @@ export function json$<T = unknown, F = T>(
     try {
         return transformer(JSON.parse(formdata.get(name) as string, reviver));
     } catch (e) {
-        throw () =>
-            fail(400, {
-                targets: [name],
-                message: `${name} isn't of type json`,
-                error: e instanceof Error ? e?.message : e?.toString()
-            });
+        fail(400, {
+            targets: [name],
+            message: `${name} isn't of type json`,
+            error: e instanceof Error ? e?.message : e?.toString()
+        });
     }
 }
 
@@ -438,7 +442,9 @@ export function jsond(
             // Field names are attacker controlled: never walk into prototype-bearing keys.
             if (splits.some((part) => UNSAFE_KEYS.has(part))) return;
             let context = result;
+            let conflict = false;
             splits.forEach((part, index) => {
+                if (conflict) return;
                 const exists = Object.hasOwn(context, part);
                 if (index === splits.length - 1) {
                     // If it's the last part, check if the key already exists
@@ -452,6 +458,11 @@ export function jsond(
                 } else {
                     // If the key doesn't exist, initialize it as an object
                     if (!exists || !context[part]) context[part] = {};
+                    // A scalar already lives here (eg. `a=1` and `a.b=2`): ignore the conflicting field
+                    if (typeof context[part] !== 'object') {
+                        conflict = true;
+                        return;
+                    }
                     // Move deeper into the object
                     context = context[part];
                 }
@@ -682,14 +693,16 @@ export function selector<
                 }
             }
         }
-        if ('$default' in cases) {
+        if (Object.hasOwn(cases, '$default')) {
             return (cases.$default as any)(formData);
         }
     } catch (error) {
         // Call $error in case of any error
-        if ('$error' in cases) {
+        if (Object.hasOwn(cases, '$error')) {
             return cases.$error?.(error);
         }
+        // Nothing to translate the error: surface it instead of silently returning undefined
+        throw error;
     }
     return undefined;
 }
@@ -706,7 +719,7 @@ export function selector$<
 >(formData: FormData, cases: C, useArray: A = false as A): NonNullable<ReturnType<C[keyof C]>> {
     const result = selector(formData, cases, useArray);
     if (!result) {
-        if ('$error' in cases) {
+        if (Object.hasOwn(cases, '$error')) {
             cases?.['$error']?.('Unable to find value');
         }
         return fail(400, {targets: Object.keys(cases), message: `Unable to find value`});
@@ -720,16 +733,15 @@ export async function handle<T>(
     ...errorHandlers: EnhanceErrorHandler[]
 ): Promise<T> {
     try {
-        if (
-            data instanceof Request &&
-            data.headers.has('Content-Type') &&
-            data.headers.get('Content-Type')?.includes('form')
-        ) {
+        if (data instanceof Request) {
+            if (!data.headers.get('Content-Type')?.includes('form')) {
+                return fail(400, {message: "Request doesn't contain form data"});
+            }
             data = await data.formData();
         } else {
-            return fail(400, {message: "Request doesn't contain form data"});
+            data = await data;
         }
-        return await fn({data: data as FormData, form: createContext(data)});
+        return await fn({data: data as FormData, form: createContext(data as FormData)});
     } catch (e) {
         for (const errorHandler of errorHandlers) {
             try {
@@ -777,13 +789,13 @@ export function validate<const T extends AnyValidator>(
     let value = jsond(formdata, {
         unpack_prefixed: true,
         ...options,
-        transform: (v) => reviver(undefined, v),
+        transform: options.transform ?? ((v) => reviver(undefined, v)),
     });
     const result = validator(value)
     if (!result.success) {
         return fail(400, {
             message: "Missing or invalid form data",
-            targets: [result.errors.map(({path}) => path.replace('$.', options.prefix_name || ''))]
+            targets: result.errors.map(({path}) => path.replace('$.', options.prefix_name || ''))
         });
     }
     return result.data as InferValidator<T>;
@@ -792,10 +804,7 @@ export function validate<const T extends AnyValidator>(
 export const schema =
     <const T extends AnyValidator>(
         validator: T,
-        options: SchemaOptions = {
-            unpack_prefixed: true,
-            transform: (value) => value
-        }
+        options: SchemaOptions = {unpack_prefixed: true}
     ) =>
         async (input: EnhanceInput) => {
             const {form} = await enhance(input);
