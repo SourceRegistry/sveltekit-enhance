@@ -236,7 +236,7 @@ export const load = <
             }
         }
         try {
-            return load(Object.assign(contextInput, {context: combined}));
+            return await load(Object.assign(contextInput, {context: combined}));
         } catch (e) {
             return EnhanceErrorHandle(e, contextInput);
         }
@@ -407,11 +407,14 @@ export const handle = <
     };
 
     try {
-        const response = await apply_handle(0, input.event);
+        let response = await apply_handle(0, input.event);
         const isSSE = response.headers.get('content-type')?.includes('text/event-stream');
         if (!isSSE && contextInput.responseHandlers.length > 0) {
             for (const responseHandler of contextInput.responseHandlers) {
-                await responseHandler({event: contextInput, response});
+                // Handlers may return a replacement Response (needed when headers are immutable,
+                // eg. Response.redirect() or a proxied fetch response).
+                const replacement = await responseHandler({event: contextInput, response});
+                if (replacement instanceof Response) response = replacement;
             }
         }
         return response;
