@@ -1,8 +1,12 @@
 import type {EnhanceFunction, EnhanceInput} from "../index.js";
 import type {Logger} from "./internal/logger.js";
 import {randomUUID} from "node:crypto";
+import {normalizeCorrelationId} from "./internal/correlation_id.js";
 
 const durationMs = (startedAt: bigint) => Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+
+/** URL without query string/hash: those commonly carry tokens and must not reach logs. */
+const safeUrl = (url: URL) => `${url.origin}${url.pathname}`;
 
 const resolveRoute = (event: EnhanceInput) =>
     event.route.id ?? event.url.pathname;
@@ -46,8 +50,8 @@ export const RequestMonitor = {
             const requestId =
                 (locals as any).correlation_id ??
                 (locals as any).request_id ??
-                event.request.headers.get('x-correlation-id') ??
-                event.request.headers.get('x-request-id') ??
+                normalizeCorrelationId(event.request.headers.get('x-correlation-id')) ??
+                normalizeCorrelationId(event.request.headers.get('x-request-id')) ??
                 randomUUID();
             const route = resolveRoute(event);
 
@@ -82,7 +86,7 @@ export const RequestMonitor = {
                     request_id: requestId,
                     method: event.request.method,
                     route,
-                    url: event.url.toString(),
+                    url: safeUrl(event.url),
                     status: response.status,
                     duration_ms: elapsedMs,
                     client_ip: clientIp
@@ -113,7 +117,7 @@ export const RequestMonitor = {
                     request_id: requestId,
                     method: event.request.method,
                     route,
-                    url: event.url,
+                    url: safeUrl(event.url),
                     duration_ms: elapsedMs,
                     client_ip: clientIp,
                     error: error instanceof Error

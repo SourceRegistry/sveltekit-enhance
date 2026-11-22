@@ -1,20 +1,9 @@
 import {randomUUID} from 'node:crypto';
 import type {EnhanceInput} from "../index.js";
+import {normalizeCorrelationId} from "./internal/correlation_id.js";
 
 const CORRELATION_ID_HEADER = 'x-correlation-id';
 const REQUEST_ID_HEADER = 'x-request-id';
-const MAX_CORRELATION_ID_LENGTH = 128;
-const SAFE_CORRELATION_ID_PATTERN = /^[A-Za-z0-9._:-]+$/;
-
-const normalizeCorrelationId = (raw?: string | null) => {
-    if (!raw) return undefined;
-    const candidate = raw.trim();
-    if (!candidate) return undefined;
-    if (candidate.length > MAX_CORRELATION_ID_LENGTH) return undefined;
-    if (!SAFE_CORRELATION_ID_PATTERN.test(candidate)) return undefined;
-    return candidate;
-};
-
 const withCorrelationHeader = (response: Response, correlationId: string) => {
     try {
         response.headers.set(CORRELATION_ID_HEADER, correlationId);
