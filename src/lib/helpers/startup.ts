@@ -17,8 +17,11 @@ export const StartUp = {
             showJSON = {error: 'service_starting', message: 'Application is initializing'},
             allowedPaths = [],
             onFailure = (reason: unknown) => {
-                process.stderr.write(`Unable to startup application because of unresolved startup item reason: ${reason}`)
-                process.exit(1)
+                const message = `Unable to startup application because of unresolved startup item reason: ${reason}`
+                const proc = (globalThis as any).process
+                if (typeof proc?.exit !== 'function') throw new Error(message, {cause: reason})
+                proc.stderr?.write(message)
+                proc.exit(1)
             },
             readyRedirect = "/"
         } = config;

@@ -26,6 +26,11 @@ export type RateLimitStore = {
 
 export type MemoryRateLimitStoreOptions = {
     cleanupIntervalMs?: number;
+    /**
+     * Upper bound on tracked keys (default 10_000). When reached, expired buckets are purged and,
+     * if still full, the oldest bucket is evicted, so floods of unique client ids cannot grow memory.
+     */
+    maxKeys?: number;
 };
 
 /**
@@ -36,6 +41,7 @@ export type MemoryRateLimitStoreOptions = {
  */
 export const createMemoryRateLimitStore = (options: MemoryRateLimitStoreOptions = {}): RateLimitStore => {
     const buckets = new Map<string, Bucket>();
+    const maxKeys = Math.max(1, options.maxKeys ?? 10_000);
 
     const cleanupTimer = setInterval(() => {
         const now = Date.now();
@@ -54,6 +60,13 @@ export const createMemoryRateLimitStore = (options: MemoryRateLimitStoreOptions 
                     : previous;
 
             bucket.count += 1;
+            if (!buckets.has(key) && buckets.size >= maxKeys) {
+                for (const [k, b] of buckets) if (b.resetAt <= now) buckets.delete(k);
+                if (buckets.size >= maxKeys) {
+                    const oldest = buckets.keys().next().value;
+                    if (oldest !== undefined) buckets.delete(oldest);
+                }
+            }
             buckets.set(key, bucket);
             return bucket;
         }
@@ -76,14 +89,17 @@ const findRule = <RuleId extends string>(
             matchesPattern(rule.pattern, pathname) && (!rule.methods || includes(rule.methods, method.toUpperCase()))
     );
 
-const getClientIdentifier = (input: EnhanceInput<'handle'>) => {
+const getClientIdentifier = (
+    input: EnhanceInput<'handle'>,
+    proxy: { trustProxyHeaders?: boolean; trustedProxyHops?: number } = {}
+) => {
     try {
         const address = input.getClientAddress?.();
         if (address) return address;
     } catch {
         // adapter may not support getClientAddress (eg. prerendering); fall through
     }
-    return ClientIp().fromRequest(input.request) ?? 'unknown';
+    return ClientIp().fromRequest(input.request, proxy) ?? 'unknown';
 };
 
 const decorateRateLimitHeaders = (
@@ -127,6 +143,13 @@ export type RequestRateLimitOptions<RuleId extends string> = {
     correlationId?: (input: EnhanceInput<'handle'>) => string | undefined;
     clientIdentifier?: (input: EnhanceInput<'handle'>) => string;
     /**
+     * Used only when the adapter's `getClientAddress` is unavailable: trust `x-forwarded-for` /
+     * `x-real-ip` set by your own proxies. Off by default (headers are client-controlled).
+     */
+    trustProxyHeaders?: boolean;
+    /** Number of trusted proxies in front of the app (default 1). */
+    trustedProxyHops?: number;
+    /**
      * Bucket storage backend. Defaults to a single-process in-memory store.
      * Pass a shared store (eg. Redis-backed) when running multiple
      * instances/processes so limits are enforced consistently across them.
@@ -148,7 +171,7 @@ export const RequestRateLimit = <RuleId extends string>(
         if (rule.limit <= 0 || rule.windowMs <= 0) return;
 
         const now = Date.now();
-        const client = options.clientIdentifier?.(input) ?? getClientIdentifier(input);
+        const client = options.clientIdentifier?.(input) ?? getClientIdentifier(input, options);
         const key = `${rule.id}:${client}`;
         const correlationId = options.correlationId?.(input) ?? (input.locals as App.Locals & {
             correlation_id?: string
