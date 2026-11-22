@@ -1,3 +1,10 @@
+## [2.0.7](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.6...v2.0.7) (2026-11-22)
+
+
+### Bug Fixes
+
+* **compat:** runtime-neutral clock/uuid, bounded rate-limit store, ClientIp and cache hardening ([#21](https://github.com/SourceRegistry/sveltekit-enhance/issues/21)) ([24d6e00](https://github.com/SourceRegistry/sveltekit-enhance/commit/24d6e009c32da1cac8814ac7f7306733328c494a))
+
 ## [2.0.6](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.5...v2.0.6) (2026-11-22)
 
 
