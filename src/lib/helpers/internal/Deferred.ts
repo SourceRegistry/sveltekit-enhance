@@ -22,10 +22,14 @@ export class Deferred<T = void> {
             this.reject = (reason?: any) => {
                 if (!this._isResolved && !this._isRejected) {
                     this._isRejected = true;
+                    this._rejectReason = reason;
                     reject(reason);
                 }
             };
         });
+        // Rejection is observable through isRejected/rejectReason; without a handler here a
+        // rejected Deferred nobody awaits would crash Node with an unhandled rejection.
+        this.promise.catch(() => {});
     }
 
     /**
@@ -67,7 +71,6 @@ export class Deferred<T = void> {
                 return r;
             },
             (reason) => {
-                this._rejectReason = reason;
                 this.reject(reason);
                 return reason;
             }
