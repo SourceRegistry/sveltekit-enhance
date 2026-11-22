@@ -1,3 +1,10 @@
+## [2.0.3](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.2...v2.0.3) (2026-11-22)
+
+
+### Bug Fixes
+
+* **csrf:** detect application/json in multi-value Accept header ([#17](https://github.com/SourceRegistry/sveltekit-enhance/issues/17)) ([7feeb46](https://github.com/SourceRegistry/sveltekit-enhance/commit/7feeb46b45a289000d1b511ed6251983a3ddf9c7))
+
 ## [2.0.2](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.1...v2.0.2) (2026-10-17)
 
 
