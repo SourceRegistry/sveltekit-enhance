@@ -1,4 +1,3 @@
-import {randomUUID} from 'node:crypto';
 import type {EnhanceInput} from "../index.js";
 import {normalizeCorrelationId} from "./internal/correlation_id.js";
 
@@ -22,7 +21,7 @@ const withCorrelationHeader = (response: Response, correlationId: string) => {
 
 export type RequestCorrelationLocals = {
     correlation_id?: string;
-    request_started_at?: string
+    request_started_at?: number
 }
 
 export const RequestCorrelation = {
@@ -31,7 +30,7 @@ export const RequestCorrelation = {
         const correlationId =
             normalizeCorrelationId(input.request.headers.get(CORRELATION_ID_HEADER)) ??
             normalizeCorrelationId(input.request.headers.get(REQUEST_ID_HEADER)) ??
-            randomUUID();
+            globalThis.crypto.randomUUID();
 
         if (input.locals) {
             // @ts-ignore

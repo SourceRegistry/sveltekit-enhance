@@ -1,9 +1,10 @@
 import type {EnhanceFunction, EnhanceInput} from "../index.js";
 import type {Logger} from "./internal/logger.js";
-import {randomUUID} from "node:crypto";
 import {normalizeCorrelationId} from "./internal/correlation_id.js";
 
-const durationMs = (startedAt: bigint) => Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+// Runtime-neutral (Node, edge workers, Bun, Deno): no process.hrtime / node:crypto.
+const nowNs = () => BigInt(Math.round(performance.now() * 1_000_000));
+const durationMs = (startedAt: bigint) => Number(nowNs() - startedAt) / 1_000_000;
 
 /** URL without query string/hash: those commonly carry tokens and must not reach logs. */
 const safeUrl = (url: URL) => `${url.origin}${url.pathname}`;
@@ -52,12 +53,12 @@ export const RequestMonitor = {
                 (locals as any).request_id ??
                 normalizeCorrelationId(event.request.headers.get('x-correlation-id')) ??
                 normalizeCorrelationId(event.request.headers.get('x-request-id')) ??
-                randomUUID();
+                globalThis.crypto.randomUUID();
             const route = resolveRoute(event);
 
             locals.trace = {
                 id: requestId,
-                started_at: process.hrtime.bigint()
+                started_at: nowNs()
             };
 
             logger.debug("http.request.started", {

@@ -13,7 +13,8 @@ const forwardedChain = (value: string | null) =>
 export const ClientIp = (defaults: {
     TRUST_PROXY_HEADERS: boolean,
     TRUST_PROXY_HOPS: number
-} = {TRUST_PROXY_HEADERS: false, TRUST_PROXY_HOPS: 1}) => ({
+} = {TRUST_PROXY_HEADERS: false, TRUST_PROXY_HOPS: 1}) => {
+  const api = {
     forwardedChain,
     fromForwardedFor(value: string | null, trustedProxyHops = defaults.TRUST_PROXY_HOPS) {
         const chain = forwardedChain(value);
@@ -31,10 +32,13 @@ export const ClientIp = (defaults: {
         const trustedProxyHops = Math.max(1, options.trustedProxyHops ?? defaults.TRUST_PROXY_HOPS);
         if (!trustProxyHeaders) return undefined;
 
-        return (
-            ClientIp(defaults).fromForwardedFor(request.headers.get('x-forwarded-for'), trustedProxyHops) ??
-            normalizeIp(request.headers.get('x-real-ip'))
-        );
+        // When X-Forwarded-For is present it is authoritative: a too-short chain means the trusted
+        // proxies did not add enough hops, so do not fall back to a client-spoofable x-real-ip.
+        const forwardedFor = request.headers.get('x-forwarded-for');
+        if (forwardedFor !== null) return api.fromForwardedFor(forwardedFor, trustedProxyHops);
+        return normalizeIp(request.headers.get('x-real-ip'));
     }
-});
+  };
+  return api;
+};
 

@@ -77,7 +77,24 @@ export const CacheControl = {
         (...rules: CacheRule[]) =>
         (input: EnhanceInput<'handle'>): void => {
             const rule = rules.find((r) => matches(r, input.url.pathname));
-            if (rule) input.setHeaders({ 'cache-control': rule.directive });
+            if (!rule) return;
+            // Applied as a default on the final response: a route-level `setHeaders` (eg.
+            // CacheControl.local) no longer throws "already set" and takes precedence.
+            input.responseHandlers.push(({ response }) => {
+                if (response.headers.has('cache-control')) return;
+                try {
+                    response.headers.set('cache-control', rule.directive);
+                    return response;
+                } catch {
+                    const headers = new Headers(response.headers);
+                    headers.set('cache-control', rule.directive);
+                    return new Response(response.body, {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers
+                    });
+                }
+            });
         },
 
     /**
