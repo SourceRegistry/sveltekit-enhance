@@ -1,3 +1,10 @@
+## [2.0.4](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.3...v2.0.4) (2026-11-22)
+
+
+### Bug Fixes
+
+* **security:** prototype pollution, Bearer scheme, own-key lookups, log hygiene ([#18](https://github.com/SourceRegistry/sveltekit-enhance/issues/18)) ([0e39e7d](https://github.com/SourceRegistry/sveltekit-enhance/commit/0e39e7da01c11579955d0c8b946410521fd77e9f))
+
 ## [2.0.3](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.2...v2.0.3) (2026-11-22)
 
 
