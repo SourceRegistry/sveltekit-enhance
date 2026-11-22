@@ -527,12 +527,14 @@ Optional variants return `undefined` when the field is absent. Required variants
 
 Numbers are only converted when the conversion is lossless, so ids, zero-padded codes and scientific notation are never altered. Short all-digit text (a PIN `"1234"`, a phone number `"31612345678"`) or a name `"null"` still arrives as a number / `null`, because that cannot be told apart from numeric input. For free-text fields:
 
+- list just those fields in `raw` to keep them as submitted while everything else is still revived (names, or RegExps matched against the submitted key and, with a prefix, the unprefixed key),
 - pass `{ revive: false }` to `validate` / `Form.schema` to keep **every** string as submitted (then convert explicitly in your validator), or
 - pass your own `options.transform` (it replaces the reviver entirely), or
 - read the field with `form.string$` instead of `validate`.
 
 ```ts
-Form.schema(myValidator, { revive: false });
+Form.schema(myValidator, { raw: ['pin', 'phone', /^address\./] }); // only these stay strings
+Form.schema(myValidator, { revive: false });  // nothing is revived
 ```
 
 #### Conditional helpers

@@ -87,6 +87,18 @@ describe('validate coercion control', () => {
         expect(validate(data, echo as any)).toEqual({pin: 1234, flag: true});
     });
 
+    it('raw keeps only the named fields as submitted', () => {
+        const data = fd({pin: '1234', age: '30', 'contact.phone': '31612345678', 'contact.fax': '555'});
+        const result = validate(data, echo as any, {raw: ['pin', /^contact\./]});
+        expect(result).toEqual({pin: '1234', age: 30, contact: {phone: '31612345678', fax: '555'}});
+    });
+
+    it('raw matches unprefixed names when a prefix is unpacked', () => {
+        const data = fd({'form.pin': '1234', 'form.age': '30'});
+        const result = validate(data, echo as any, {prefix_name: 'form.', unpack_prefixed: true, raw: ['pin']});
+        expect(result).toEqual({pin: '1234', age: 30});
+    });
+
     it('a custom transform wins over revive', () => {
         expect(validate(fd({a: '1'}), echo as any, {revive: false, transform: () => 'x'})).toEqual({a: 'x'});
     });
