@@ -1,3 +1,10 @@
+## [2.0.9](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.8...v2.0.9) (2026-11-22)
+
+
+### Bug Fixes
+
+* **form:** per-field raw option for validate/Form.schema; fix typedoc minimatch advisory ([#26](https://github.com/SourceRegistry/sveltekit-enhance/issues/26)) ([efb2222](https://github.com/SourceRegistry/sveltekit-enhance/commit/efb2222be378b0e96b09fc6a8936472347321485))
+
 ## [2.0.8](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.7...v2.0.8) (2026-11-22)
 
 
