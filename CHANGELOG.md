@@ -1,3 +1,10 @@
+## [2.0.6](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.5...v2.0.6) (2026-11-22)
+
+
+### Bug Fixes
+
+* **form:** Form.handle input types, selector errors, validate transform, date/number parsing ([#20](https://github.com/SourceRegistry/sveltekit-enhance/issues/20)) ([9d5b2b5](https://github.com/SourceRegistry/sveltekit-enhance/commit/9d5b2b5ab96e2442c69db4bbe584f899d3a99049))
+
 ## [2.0.5](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.4...v2.0.5) (2026-11-22)
 
 
