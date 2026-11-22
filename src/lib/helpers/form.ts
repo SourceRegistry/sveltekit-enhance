@@ -405,6 +405,8 @@ export function json$<T = unknown, F = T>(
     }
 }
 
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 export function jsond(
     formdata: FormData,
     options: {
@@ -433,11 +435,14 @@ export function jsond(
         )
         .forEach(([key, value]) => {
             const splits = key.split('.');
+            // Field names are attacker controlled: never walk into prototype-bearing keys.
+            if (splits.some((part) => UNSAFE_KEYS.has(part))) return;
             let context = result;
             splits.forEach((part, index) => {
+                const exists = Object.hasOwn(context, part);
                 if (index === splits.length - 1) {
                     // If it's the last part, check if the key already exists
-                    if (context[part] === undefined) {
+                    if (!exists || context[part] === undefined) {
                         context[part] = value;
                     } else if (Array.isArray(context[part])) {
                         context[part].push(value);
@@ -446,7 +451,7 @@ export function jsond(
                     }
                 } else {
                     // If the key doesn't exist, initialize it as an object
-                    if (!context[part]) context[part] = {};
+                    if (!exists || !context[part]) context[part] = {};
                     // Move deeper into the object
                     context = context[part];
                 }
@@ -565,7 +570,7 @@ export function Enum<E extends Record<string, string | number | any>>(
     if (typeof data != 'string') {
         return fail(400, {targets: [name], message: `${name} isn't of type in enum`});
     }
-    if (!(data in _enum)) return undefined;
+    if (!Object.hasOwn(_enum, data)) return undefined;
     return data as keyof E;
 }
 
@@ -650,7 +655,7 @@ export function selector<
 >(formData: FormData, cases: C, useArray: A = false as A): ReturnType<C[keyof C]> | undefined {
     try {
         for (const key of formData.keys()) {
-            if (key in cases) {
+            if (Object.hasOwn(cases, key) && !key.startsWith('$')) {
                 const processor = cases[key as keyof typeof cases];
                 if (formData.has(key)) {
                     if (useArray) {
