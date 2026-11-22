@@ -98,7 +98,7 @@ describe('RequestMonitor logging hygiene', () => {
     });
 
     it('ignores unsafe inbound request ids', async () => {
-        const {input} = await run({'x-request-id': 'bad id\nforged line'});
+        const {input} = await run({'x-request-id': 'bad id forged {line}'});
         expect(input.locals.trace.id).not.toContain('forged');
     });
 
