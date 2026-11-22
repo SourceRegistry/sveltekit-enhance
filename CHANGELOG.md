@@ -1,3 +1,10 @@
+## [2.0.5](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.4...v2.0.5) (2026-11-22)
+
+
+### Bug Fixes
+
+* **core:** await load errors, honour replacement responses, fix Deferred rejections ([#19](https://github.com/SourceRegistry/sveltekit-enhance/issues/19)) ([d7cb5e1](https://github.com/SourceRegistry/sveltekit-enhance/commit/d7cb5e13a8098bfcd7ef9684283d24bf7c8c4b70))
+
 ## [2.0.4](https://github.com/SourceRegistry/sveltekit-enhance/compare/v2.0.3...v2.0.4) (2026-11-22)
 
 
