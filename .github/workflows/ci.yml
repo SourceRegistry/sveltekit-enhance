@@ -37,6 +37,10 @@ jobs:
         run: npm ci
       - name: Run tests
         run: npm test
+      - name: Audit shipped dependencies
+        # Dev-tooling advisories (npm/glob/minimatch inside semantic-release and typedoc) have no upstream fix yet;
+        # the published package has no runtime dependencies, so gate on what consumers actually install.
+        run: npm audit --omit=dev --audit-level=moderate
       - name: Build the package
         run: npm run build
 

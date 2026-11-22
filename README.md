@@ -521,10 +521,19 @@ Optional variants return `undefined` when the field is absent. Required variants
 | `"true"` / `"false"` | boolean |
 | `"null"` / `"undefined"` | `null` / `undefined` |
 | `"NaN"`, `"Infinity"`, `"-Infinity"` | number |
-| `"1234"`, `"-1.5"`, `"1e3"` (canonical decimal numbers) | number |
+| `"1234"`, `"-1.5"`, `"0.5"` (canonical decimal numbers that print back identically) | number |
+| `"007"`, `"1.0"`, `"1e3"`, `"-0"`, ids beyond 2^53 such as `"12345678901234567890"` | stay strings (converting would change or lose the value) |
 | `"{...}"` / `"[...]"` | parsed JSON (recursively revived) |
 
-This is convenient for typed validators, but it is **lossy for free-text fields**: a password `"1234"`, a phone number such as `"31612345678"`, an id like `"12345678901234567890"` (precision loss) or a name `"null"` arrive as numbers or `null`. Mitigations: read those fields with `form.string$` instead of `validate`, make the validator accept the revived type and stringify it, or pass your own `options.transform` to `validate` / `Form.schema` (a custom `transform` replaces the reviver entirely).
+Numbers are only converted when the conversion is lossless, so ids, zero-padded codes and scientific notation are never altered. Short all-digit text (a PIN `"1234"`, a phone number `"31612345678"`) or a name `"null"` still arrives as a number / `null`, because that cannot be told apart from numeric input. For free-text fields:
+
+- pass `{ revive: false }` to `validate` / `Form.schema` to keep **every** string as submitted (then convert explicitly in your validator), or
+- pass your own `options.transform` (it replaces the reviver entirely), or
+- read the field with `form.string$` instead of `validate`.
+
+```ts
+Form.schema(myValidator, { revive: false });
+```
 
 #### Conditional helpers
 

@@ -49,6 +49,18 @@ type SchemaOptions = {
     unpack_prefixed?: boolean;
     transform?: (value: FormDataEntryValue, key: string, data: FormData) => any;
     processor?: (input: any) => any;
+    /**
+     * Set to `false` to keep every form string as-is (no `"1234"` -> number, `"true"` -> boolean,
+     * JSON parsing). Ignored when a custom `transform` is given.
+     * @default true
+     */
+    revive?: boolean;
+};
+
+/** Convert only when the number prints back exactly: keeps "1e3", "1.0", "007" and ids beyond 2^53 as strings. */
+const lossless = (v: string) => {
+    const n = Number(v);
+    return String(n) === v ? n : v;
 };
 
 const reviveMap = new Map<string | RegExp, (v: string) => any>([
@@ -59,7 +71,7 @@ const reviveMap = new Map<string | RegExp, (v: string) => any>([
     ['Infinity', () => Infinity],
     ['-Infinity', () => -Infinity],
     ['NaN', () => NaN],
-    [/^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/, (v) => Number(v)],
+    [/^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/, lossless],
     [/^\s*\{[\s\S]*}\s*$/, (v) => JSON.parse(v, reviver)],
     [/^\s*\[[\s\S]*]\s*$/, (v) => JSON.parse(v, reviver)]
 ]);
@@ -789,7 +801,9 @@ export function validate<const T extends AnyValidator>(
     let value = jsond(formdata, {
         unpack_prefixed: true,
         ...options,
-        transform: options.transform ?? ((v) => reviver(undefined, v)),
+        transform:
+            options.transform ??
+            (options.revive === false ? (v: FormDataEntryValue) => v : (v: FormDataEntryValue) => reviver(undefined, v)),
     });
     const result = validator(value)
     if (!result.success) {

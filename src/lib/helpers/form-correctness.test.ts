@@ -74,6 +74,29 @@ describe('validate', () => {
     });
 });
 
+describe('validate coercion control', () => {
+    const echo = (value: any) => ({success: true, data: value} as const);
+
+    it('revive: false keeps every string untouched', () => {
+        const data = fd({pin: '1234', flag: 'true', nothing: 'null', obj: '{"a":1}'});
+        expect(validate(data, echo as any, {revive: false})).toEqual({pin: '1234', flag: 'true', nothing: 'null', obj: '{"a":1}'});
+    });
+
+    it('revive defaults to true', () => {
+        const data = fd({pin: '1234', flag: 'true'});
+        expect(validate(data, echo as any)).toEqual({pin: 1234, flag: true});
+    });
+
+    it('a custom transform wins over revive', () => {
+        expect(validate(fd({a: '1'}), echo as any, {revive: false, transform: () => 'x'})).toEqual({a: 'x'});
+    });
+
+    it('does not lose precision on large ids or reformat numeric-looking text', () => {
+        const data = fd({id: '12345678901234567890', zero: '007', sci: '1e3', dec: '1.0'});
+        expect(validate(data, echo as any)).toEqual({id: '12345678901234567890', zero: '007', sci: '1e3', dec: '1.0'});
+    });
+});
+
 describe('scalar parsing', () => {
     it('number treats whitespace-only as empty', () => {
         expect(number(fd({n: '  '}), 'n')).toBeUndefined();
