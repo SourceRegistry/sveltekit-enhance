@@ -9,12 +9,18 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Never cancel runs on release branches: killing semantic-release mid-publish can leave
+  # npm published without the matching tag/changelog commit. Queue them instead.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/alpha' }}
 
 jobs:
   test:
-    name: Test and build
+    name: Test and build (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -23,7 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: ${{ matrix.node }}
           registry-url: "https://registry.npmjs.org/"
       - name: Install dependencies
         run: npm ci
@@ -94,4 +100,13 @@ jobs:
         with:
           path: ./docs
       - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v5
+        continue-on-error: true
+      # deploy-pages occasionally cannot see the just-uploaded artifact (eventual consistency)
+      - name: Retry deploy to GitHub Pages
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 20
+      - name: Deploy to GitHub Pages (retry)
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v5
